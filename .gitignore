@@ -62,6 +62,11 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Project data — binary files that must not be committed
+# web.sqlite: KJV with Apocrypha Bible database (~5 MB, acquire separately)
+# habits.sqlite: runtime habit log (user data)
+backend/data/*.sqlite
+
 # Flask stuff:
 instance/
 .webassets-cache
