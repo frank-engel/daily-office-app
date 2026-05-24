@@ -61,6 +61,28 @@ async def _expand_lessons(lessons: dict) -> dict[str, LessonEntry]:
     return expanded
 
 
+async def build_office_context(office_date: str) -> dict | None:
+    """Fetch and expand full office data for a date string. Returns None if not found."""
+    try:
+        d = DateType.fromisoformat(office_date)
+    except ValueError:
+        return None
+    result = resolve_office(d)
+    if result is None:
+        return None
+    return {
+        "date": result["date"],
+        "title": result.get("title"),
+        "season": result["season"],
+        "week": result["week"],
+        "cycle": result["cycle"],
+        "morning_psalms": await _expand_psalms(result["psalms"]["morning"]),
+        "evening_psalms": await _expand_psalms(result["psalms"]["evening"]),
+        "morning_lessons": await _expand_lessons(result["morning_lessons"]),
+        "evening_lessons": await _expand_lessons(result["evening_lessons"]),
+    }
+
+
 @router.get(
     "/{office_date}",
     response_model=OfficeResponse,
@@ -94,30 +116,25 @@ async def get_office(
     ),
 ) -> OfficeResponse:
     try:
-        d = DateType.fromisoformat(office_date)
+        DateType.fromisoformat(office_date)
     except ValueError:
         raise HTTPException(status_code=422, detail="Invalid date format; use YYYY-MM-DD")
 
-    result = resolve_office(d)
-    if result is None:
+    ctx = await build_office_context(office_date)
+    if ctx is None:
         raise HTTPException(
             status_code=404,
             detail=f"No lectionary entry found for {office_date}",
         )
 
-    morning_psalms = await _expand_psalms(result["psalms"]["morning"])
-    evening_psalms = await _expand_psalms(result["psalms"]["evening"])
-    morning_lessons = await _expand_lessons(result["morning_lessons"])
-    evening_lessons = await _expand_lessons(result["evening_lessons"])
-
     return OfficeResponse(
-        date=result["date"],
-        title=result.get("title"),
-        season=result["season"],
-        week=result["week"],
-        cycle=result["cycle"],
-        psalms={"morning": morning_psalms, "evening": evening_psalms},
-        morning_lessons=morning_lessons,
-        evening_lessons=evening_lessons,
+        date=ctx["date"],
+        title=ctx["title"],
+        season=ctx["season"],
+        week=ctx["week"],
+        cycle=ctx["cycle"],
+        psalms={"morning": ctx["morning_psalms"], "evening": ctx["evening_psalms"]},
+        morning_lessons=ctx["morning_lessons"],
+        evening_lessons=ctx["evening_lessons"],
         reflection=None,
     )

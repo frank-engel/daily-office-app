@@ -8,13 +8,19 @@ in the MVP — everything runs locally and is accessed from an Android WebView o
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Android WebView  (localhost:8000 via adb reverse)      │
+│  Browser / Android WebView  (localhost:8000)            │
 └─────────────────────┬───────────────────────────────────┘
                       │ HTTP
 ┌─────────────────────▼───────────────────────────────────┐
 │  FastAPI  (uvicorn)                                     │
 │                                                         │
-│  Routers                                                │
+│  HTML routes  (Jinja2 + HTMX)                          │
+│  ├─ GET /                       ─► index.html           │
+│  ├─ GET /office/{date}          ─► office.html          │
+│  └─ GET /partials/office/{date}/{tab}                   │
+│       ─► _office_tab.html  (HTMX partial swap)         │
+│                                                         │
+│  JSON API routes                                        │
 │  ├─ /api/office/{date}   ─► Calendar engine             │
 │  │                           Lectionary engine           │
 │  │                           Bible DB                    │
@@ -23,7 +29,6 @@ in the MVP — everything runs locally and is accessed from an Android WebView o
 │  ├─ /api/psalms/{n}      ─► Bible DB                    │
 │  └─ /api/habits/*        ─► Habit DB  (Phase 5)         │
 │                                                         │
-│  Templates (Jinja2/HTMX)  (Phase 4)                     │
 └──────────┬──────────────┬──────────────────────────────-┘
            │              │
     ┌──────▼──────┐  ┌────▼──────┐
@@ -69,6 +74,19 @@ cross-chapter, letter-suffixed verses, and parenthetical optionals.
 ### `app/api/`
 
 FastAPI `APIRouter` modules. Each file is a thin HTTP layer — no business logic.
+`office.py` also exports `build_office_context()`, a shared coroutine used by both
+the JSON API route and the HTML page routes in `main.py`.
+
+### `app/templates/`
+
+Jinja2 templates served by the HTML routes in `main.py`.
+
+| Template | Role |
+|---|---|
+| `base.html` | Shared shell — nav bar, Tailwind + HTMX CDN, `<main>` wrapper |
+| `index.html` | Home page — "Open Today's Office" link |
+| `office.html` | Full office page — date header, prev/next nav, Morning/Evening tab bar |
+| `_office_tab.html` | Partial — psalms + lessons for one time-of-day; returned by the `/partials/` endpoint and also `{% include %}`d on initial page load |
 
 ### `app/schemas.py`
 
@@ -94,7 +112,9 @@ schema generation and runtime response validation.
 5. KJVA_verses WHERE book_id=23 AND chapter=1 AND verse BETWEEN 1 AND 9
       → [{book, chapter, verse, text}, ...]
 
-6. OfficeResponse (Pydantic model) → JSON
+6a. JSON route  → OfficeResponse (Pydantic model) → JSON response
+6b. HTML route  → build_office_context() dict → Jinja2 office.html → HTML response
+                   HTMX tab click → /partials/office/{date}/{tab} → _office_tab.html fragment
 ```
 
 ## Key design decisions

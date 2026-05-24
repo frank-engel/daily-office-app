@@ -1,12 +1,14 @@
+import datetime
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.bible.db import startup_check
 from app.lectionary.loader import load_lectionary
 from app.api.bible import router as bible_router
-from app.api.office import router as office_router
+from app.api.office import router as office_router, build_office_context
 from app.api.psalms import router as psalms_router
 
 app = FastAPI(
@@ -63,10 +65,86 @@ app.include_router(bible_router)
 app.include_router(psalms_router)
 
 
-@app.get("/", include_in_schema=False)
-async def root():
-    return {"status": "ok", "message": "Anglican Daily Office API v0.3.0"}
+# ── HTML routes ──────────────────────────────────────────────────────────────
 
+@app.get("/", include_in_schema=False, response_class=HTMLResponse)
+async def index(request: Request):
+    today = datetime.date.today().isoformat()
+    return TEMPLATES.TemplateResponse(request, "index.html", {"today": today})
+
+
+@app.get("/office/{office_date}", include_in_schema=False, response_class=HTMLResponse)
+async def office_html(request: Request, office_date: str):
+    try:
+        d = datetime.date.fromisoformat(office_date)
+    except ValueError:
+        return TEMPLATES.TemplateResponse(
+            request,
+            "office.html",
+            {
+                "error": f"Invalid date: {office_date!r}. Use YYYY-MM-DD.",
+                "date": office_date,
+                "formatted_date": office_date,
+                "prev_date": None,
+                "next_date": None,
+                "today": datetime.date.today().isoformat(),
+            },
+            status_code=422,
+        )
+
+    prev_date = (d - datetime.timedelta(days=1)).isoformat()
+    next_date = (d + datetime.timedelta(days=1)).isoformat()
+    today = datetime.date.today().isoformat()
+    formatted_date = d.strftime("%A, %B %d, %Y")
+
+    ctx = await build_office_context(office_date)
+    if ctx is None:
+        return TEMPLATES.TemplateResponse(
+            request,
+            "office.html",
+            {
+                "error": f"No lectionary entry found for {office_date}.",
+                "date": office_date,
+                "formatted_date": formatted_date,
+                "prev_date": prev_date,
+                "next_date": next_date,
+                "today": today,
+            },
+            status_code=404,
+        )
+
+    return TEMPLATES.TemplateResponse(
+        request,
+        "office.html",
+        {
+            "tab": "morning",
+            "formatted_date": formatted_date,
+            "prev_date": prev_date,
+            "next_date": next_date,
+            "today": today,
+            **ctx,
+        },
+    )
+
+
+@app.get("/partials/office/{office_date}/{tab}", include_in_schema=False, response_class=HTMLResponse)
+async def office_tab_partial(request: Request, office_date: str, tab: str):
+    if tab not in ("morning", "evening"):
+        return HTMLResponse(content="<p>Invalid tab.</p>", status_code=400)
+    ctx = await build_office_context(office_date)
+    if ctx is None:
+        return HTMLResponse(
+            content=f'<p class="text-red-600 p-4">No office data for {office_date}.</p>',
+            status_code=404,
+        )
+    return TEMPLATES.TemplateResponse(
+        request,
+        "_office_tab.html",
+        {"tab": tab, **ctx},
+    )
+
+
+# ── Meta ─────────────────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["meta"], summary="Health check")
 async def health():

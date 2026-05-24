@@ -26,7 +26,7 @@ Office for any calendar date.
 | 1 — Foundation | ✅ Complete |
 | 2 — Lectionary Engine | ✅ Complete |
 | 3 — Bible Database | ✅ Complete |
-| 4 — Frontend | Pending |
+| 4 — Frontend | ✅ Complete |
 | 5 — Habits | Pending |
 | 6 — Android | Pending |
 | 7 — Polish | Ongoing |

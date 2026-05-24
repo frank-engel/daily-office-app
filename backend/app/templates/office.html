@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ title or week or date }} — Daily Office{% endblock %}
+
+{% block content %}
+
+{# ── Error state ─────────────────────────────────────────────────────────── #}
+{% if error %}
+<div class="py-8">
+  <div class="flex items-center justify-between mb-6 text-sm">
+    <a href="/" class="text-stone-400 hover:text-stone-600">← Home</a>
+  </div>
+  <p class="text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3">{{ error }}</p>
+  {% if prev_date %}
+  <div class="mt-6 flex gap-4 text-sm">
+    <a href="/office/{{ prev_date }}" class="text-stone-500 hover:text-stone-800">‹ Previous day</a>
+    <a href="/office/{{ next_date }}" class="text-stone-500 hover:text-stone-800">Next day ›</a>
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+
+{# ── Header ──────────────────────────────────────────────────────────────── #}
+<div class="mb-6">
+  <div class="flex items-center justify-between mb-3 text-sm">
+    <a href="/" class="text-stone-400 hover:text-stone-600 transition-colors">← Home</a>
+    <div class="flex items-center gap-3 text-stone-400">
+      <a href="/office/{{ prev_date }}" class="hover:text-stone-700 transition-colors">‹ Prev</a>
+      {% if date != today %}
+      <a href="/office/{{ today }}" class="text-xs uppercase tracking-wide hover:text-stone-700 transition-colors">Today</a>
+      {% endif %}
+      <a href="/office/{{ next_date }}" class="hover:text-stone-700 transition-colors">Next ›</a>
+    </div>
+  </div>
+
+  <p class="text-stone-500 text-sm mb-1">{{ formatted_date }}</p>
+  <h1 class="text-2xl font-bold text-stone-800 leading-snug">{{ title or week }}</h1>
+  <p class="text-stone-400 text-xs mt-1 tracking-wide uppercase">
+    {{ season }} &middot; Year {{ cycle }}
+  </p>
+</div>
+
+{# ── Tab bar ─────────────────────────────────────────────────────────────── #}
+<div class="flex border-b border-stone-200 mb-6">
+  <button
+    id="btn-morning"
+    onclick="setActiveTab('morning')"
+    hx-get="/partials/office/{{ date }}/morning"
+    hx-target="#office-content"
+    hx-swap="innerHTML"
+    class="px-5 py-2.5 text-sm font-medium border-b-2 border-stone-700 text-stone-800 -mb-px transition-colors"
+  >
+    Morning Prayer
+  </button>
+  <button
+    id="btn-evening"
+    onclick="setActiveTab('evening')"
+    hx-get="/partials/office/{{ date }}/evening"
+    hx-target="#office-content"
+    hx-swap="innerHTML"
+    class="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-stone-400 hover:text-stone-600 -mb-px transition-colors"
+  >
+    Evening Prayer
+  </button>
+</div>
+
+{# ── Tab content (initial: morning) ──────────────────────────────────────── #}
+<div id="office-content">
+  {% include "_office_tab.html" %}
+</div>
+
+<script>
+function setActiveTab(active) {
+  ['morning', 'evening'].forEach(function(name) {
+    var btn = document.getElementById('btn-' + name);
+    var isActive = name === active;
+    btn.classList.toggle('border-stone-700', isActive);
+    btn.classList.toggle('text-stone-800', isActive);
+    btn.classList.toggle('border-transparent', !isActive);
+    btn.classList.toggle('text-stone-400', !isActive);
+  });
+}
+</script>
+
+{% endif %}
+{% endblock %}

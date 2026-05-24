@@ -30,7 +30,7 @@ pip install -e ".[dev]"
 uvicorn main:app --reload
 ```
 
-Open `http://localhost:8000` — the API is live.  
+Open `http://localhost:8000` — the browser UI is live.  
 Interactive API docs (Swagger UI): `http://localhost:8000/docs`
 
 ## Bible Database Setup
@@ -81,6 +81,15 @@ or `http://localhost:8000/redoc` (ReDoc) when the server is running.
 
 See also [`docs/api/`](docs/api/) for static Markdown reference.
 
+**Browser UI:**
+
+| URL | Description |
+|---|---|
+| `GET /` | Home page — link to today's office |
+| `GET /office/{YYYY-MM-DD}` | Daily Office page — Morning/Evening Prayer tabs with full text |
+
+**JSON API:**
+
 | Endpoint | Description |
 |---|---|
 | `GET /api/office/{YYYY-MM-DD}` | Complete Daily Office — lectionary, psalms, and verse text |
@@ -95,7 +104,7 @@ See also [`docs/api/`](docs/api/) for static Markdown reference.
 | 1 — Foundation | ✅ Done | Directory layout, `pyproject.toml`, Easter algorithm, 23 calendar tests |
 | 2 — Lectionary Engine | ✅ Done | Liturgical calendar, normalizer, loader, resolver, `/api/office/{date}` |
 | 3 — Bible Database | ✅ Done | KJVA SQLite, reference parser, `/api/bible`, `/api/psalms`, verse text in office API |
-| 4 — Frontend | Pending | HTMX templates, readable office in browser |
+| 4 — Frontend | ✅ Done | Jinja2/HTMX templates, readable office in browser, prev/next date nav |
 | 5 — Habits | Pending | Habit log, 30-day grid |
 | 6 — Android | Pending | WebView wrapper APK |
 | 7 — Polish | Ongoing | Holy day interrupt logic, error pages, edge cases |

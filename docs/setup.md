@@ -57,13 +57,29 @@ string `"[Text not available in this edition]"`.
 ## 4. Start the server
 
 ```powershell
+# From the project root (where .venv lives)
+.\.venv\Scripts\Activate.ps1
+
 cd backend
 uvicorn main:app --reload
 ```
 
-The API is available at `http://localhost:8000`.  
-Interactive docs (Swagger UI): `http://localhost:8000/docs`  
-Alternative docs (ReDoc): `http://localhost:8000/redoc`
+| URL | What you see |
+|---|---|
+| `http://localhost:8000/` | Home page — "Open Today's Office" button |
+| `http://localhost:8000/office/YYYY-MM-DD` | Daily Office with Morning/Evening Prayer tabs |
+| `http://localhost:8000/docs` | Swagger UI — interactive JSON API explorer |
+| `http://localhost:8000/redoc` | ReDoc — alternative API documentation |
+
+### Manual testing checklist
+
+1. Open `http://localhost:8000/` — home page loads with today's date.
+2. Click **Open Today's Office** — office page loads with liturgical title, season, and year cycle.
+3. Morning Prayer tab is active by default; psalms and lessons render with verse text.
+4. Click **Evening Prayer** — content swaps via HTMX without a page reload.
+5. Click **‹ Prev** and **Next ›** — navigates to adjacent days correctly.
+6. Visit a known feast day, e.g. `http://localhost:8000/office/2026-04-05` (Easter Sunday 2026) — title shows *Easter Day*.
+7. Visit `http://localhost:8000/office/2024-12-01` (First Sunday of Advent 2024) — season shows *Advent*, Year One.
 
 ## 5. Run tests
 

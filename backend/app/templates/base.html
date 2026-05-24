@@ -6,8 +6,22 @@
   <title>{% block title %}Daily Office{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  <style>
+    body { font-family: 'Georgia', 'Times New Roman', serif; }
+  </style>
 </head>
-<body class="bg-stone-50 text-stone-900 font-serif">
-  {% block content %}{% endblock %}
+<body class="bg-stone-50 text-stone-900 min-h-screen">
+
+  <nav class="bg-stone-800 text-stone-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
+    <a href="/" class="text-base font-semibold tracking-wide hover:text-stone-300 transition-colors">
+      Daily Office
+    </a>
+    <span class="text-stone-400 text-xs tracking-widest uppercase">BCP 1979</span>
+  </nav>
+
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
 </body>
 </html>

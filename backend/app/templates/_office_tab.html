@@ -1,0 +1,64 @@
+{# Partial: morning or evening office content.
+   Required context vars: tab, morning_psalms, evening_psalms,
+   morning_lessons, evening_lessons. #}
+
+{% if tab == 'morning' %}
+  {% set psalms  = morning_psalms %}
+  {% set lessons = morning_lessons %}
+{% else %}
+  {% set psalms  = evening_psalms %}
+  {% set lessons = evening_lessons %}
+{% endif %}
+
+{% set slot_labels = {"first": "First Lesson", "second": "Second Lesson", "gospel": "The Gospel"} %}
+
+{# ── Psalms ──────────────────────────────────────────────────────────────── #}
+{% if psalms %}
+<section class="mb-10">
+  <h2 class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-5">Psalms</h2>
+
+  {% for entry in psalms %}
+  <div class="mb-8">
+    <h3 class="text-base font-semibold text-stone-600 mb-3 tracking-wide">
+      Psalm {{ entry.psalm }}
+    </h3>
+    <div class="space-y-2 text-[0.95rem] leading-relaxed text-stone-800">
+      {% for v in entry.verses %}
+      <p>
+        <sup class="text-[0.65rem] text-stone-400 mr-1 select-none">{{ v.verse }}</sup>{{ v.text }}
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% else %}
+<p class="text-stone-400 italic mb-10">No psalm appointed.</p>
+{% endif %}
+
+{# ── Lessons ─────────────────────────────────────────────────────────────── #}
+{% if lessons %}
+<section>
+  <h2 class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-5">Lessons</h2>
+
+  {% for slot, lesson in lessons.items() %}
+  {% if lesson.reference %}
+  <div class="mb-10">
+    <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-1">
+      {{ slot_labels.get(slot, slot | title) }}
+    </p>
+    <p class="text-stone-500 text-sm italic mb-4">{{ lesson.reference }}</p>
+    <div class="space-y-2 text-[0.95rem] leading-relaxed text-stone-800">
+      {% for v in lesson.verses %}
+      <p>
+        <sup class="text-[0.65rem] text-stone-400 mr-1 select-none">{{ v.chapter }}:{{ v.verse }}</sup>{{ v.text }}
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</section>
+{% else %}
+<p class="text-stone-400 italic">No lessons appointed.</p>
+{% endif %}
