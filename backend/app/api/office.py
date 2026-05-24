@@ -1,4 +1,5 @@
 """GET /api/office/{date} — Daily Office lectionary with full verse text."""
+import re
 from datetime import date as DateType
 
 from fastapi import APIRouter, HTTPException, Path
@@ -8,6 +9,44 @@ from app.lectionary.resolver import resolve_office
 from app.schemas import LessonEntry, OfficeResponse, PsalmEntry, PsalmVerseResponse, VerseResponse
 
 router = APIRouter(prefix="/api/office", tags=["office"])
+
+# Psalm numbers in the lectionary JSON come in three forms:
+#   "23"            — plain integer, fetch whole psalm
+#   "[58]"          — bracketed optional, strip brackets, fetch whole psalm
+#   "119:1–24"      — verse range, fetch via reference parser
+#   "21:1–7(8–14)"  — verse range with optional extension
+_PLAIN_RE = re.compile(r"^\d+$")
+_BRACKETED_RE = re.compile(r"^\[(\d+)\]$")
+
+
+async def _expand_psalm_token(token: str) -> PsalmEntry:
+    """Resolve one psalm token (possibly bracketed or verse-ranged) to a PsalmEntry."""
+    token = token.strip()
+
+    # "[n]" — optional psalm; strip brackets and treat as whole psalm
+    m = _BRACKETED_RE.match(token)
+    if m:
+        n = int(m.group(1))
+        raw = await fetch_psalm(n)
+        return PsalmEntry(psalm=n, verses=[PsalmVerseResponse(**v) for v in raw])
+
+    # Plain integer — whole psalm
+    if _PLAIN_RE.match(token):
+        n = int(token)
+        raw = await fetch_psalm(n)
+        return PsalmEntry(psalm=n, verses=[PsalmVerseResponse(**v) for v in raw])
+
+    # Verse range like "119:1–24" or "21:1–7(8–14)" — use reference parser
+    # The psalm number is the part before the colon.
+    n = int(token.split(":")[0])
+    raw = await fetch_verses(f"Ps {token}")
+    # fetch_verses returns {book, chapter, verse, text}; adapt to PsalmVerseResponse
+    verses = [PsalmVerseResponse(psalm=n, verse=v["verse"], text=v["text"]) for v in raw]
+    return PsalmEntry(psalm=n, verses=verses)
+
+
+async def _expand_psalms(psalm_numbers: list[str]) -> list[PsalmEntry]:
+    return [await _expand_psalm_token(t) for t in psalm_numbers]
 
 
 async def _expand_lessons(lessons: dict) -> dict[str, LessonEntry]:
@@ -20,15 +59,6 @@ async def _expand_lessons(lessons: dict) -> dict[str, LessonEntry]:
         else:
             expanded[key] = LessonEntry(reference=None, verses=[])
     return expanded
-
-
-async def _expand_psalms(psalm_numbers: list[str]) -> list[PsalmEntry]:
-    result = []
-    for num in psalm_numbers:
-        raw = await fetch_psalm(num)
-        verses = [PsalmVerseResponse(**v) for v in raw]
-        result.append(PsalmEntry(psalm=int(num), verses=verses))
-    return result
 
 
 @router.get(

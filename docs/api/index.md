@@ -28,8 +28,8 @@ All date parameters use ISO 8601: `YYYY-MM-DD`
 
 ### Bible reference format
 
-Reference strings use Unicode **en-dash** (U+2013 `–`) as the range separator, not ASCII
-hyphen (`-`). This matches the encoding in the BCP lectionary JSON source data.
+Both ASCII hyphen (`-`) and Unicode en-dash (`–`) are accepted as range separators.
+You can type ordinary hyphens — they are normalized internally.
 
 ### Error responses
 

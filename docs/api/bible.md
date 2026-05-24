@@ -19,18 +19,18 @@ and other URL-safe characters are preserved.
 
 ### Supported reference formats
 
-The range separator is Unicode **en-dash** (U+2013, `–`), not ASCII hyphen (`-`).
-This matches the encoding used in the BCP 1979 lectionary JSON.
+Both ASCII hyphen (`-`) and Unicode en-dash (`–`) are accepted as range separators
+and treated identically. The internal data uses en-dashes, but you never need to type one.
 
 | Format | Example |
 |---|---|
-| Simple range | `Isa 1:1–9` |
-| Multi-range, same chapter | `Isa 5:8–12, 18–23` |
-| Semicolon-separated sections | `Gal 3:23–29; 4:4–7` |
-| Letter-suffixed verse (stripped) | `2 Pet 2:1–10a` |
-| Cross-chapter range | `Luke 20:41–21:4` |
-| Parenthetical optional suffix | `John 17:1–11(12–26)` |
-| Parenthetical optional prefix | `Isa 42:(1–9)10–17` |
+| Simple range | `Isa 1:1-9` |
+| Multi-range, same chapter | `Isa 5:8-12, 18-23` |
+| Semicolon-separated sections | `Gal 3:23-29; 4:4-7` |
+| Letter-suffixed verse (stripped) | `2 Pet 2:1-10a` |
+| Cross-chapter range | `Luke 20:41-21:4` |
+| Parenthetical optional suffix | `John 17:1-11(12-26)` |
+| Parenthetical optional prefix | `Isa 42:(1-9)10-17` |
 
 Parenthetical sections are always stripped; only the non-parenthetical portion is returned.
 

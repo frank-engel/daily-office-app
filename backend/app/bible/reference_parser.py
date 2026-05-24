@@ -1,15 +1,19 @@
 """
 Parse BCP lectionary Bible references into structured verse-range queries.
 
-Supported formats (range separator is en-dash U+2013, not ASCII hyphen):
-  "Isa 1:1–9"               simple range
-  "Gal 3:23–29; 4:4–7"      multi-section, semicolon-separated
-  "Isa 5:8–12, 18–23"       multi-range, same chapter
-  "2 Pet 2:1–10a"           letter-suffixed verse (strip a/b)
-  "Luke 20:41–21:4"         chapter-spanning range
-  "John 17:1–11(12–26)"     parenthetical optional suffix
-  "Isa 42:(1–9)10–17"       parenthetical optional prefix
-  "Rev 21:1–4,–14"          ambiguous — handled via KNOWN_OVERRIDES
+Accepts both ASCII hyphen (-) and Unicode en-dash (–, U+2013) as range
+separators. Hyphens are normalized to en-dashes on entry so callers never
+need to think about the distinction.
+
+Supported formats:
+  "Isa 1:1-9"               simple range (hyphen or en-dash)
+  "Gal 3:23-29; 4:4-7"      multi-section, semicolon-separated
+  "Isa 5:8-12, 18-23"       multi-range, same chapter
+  "2 Pet 2:1-10a"           letter-suffixed verse (strip a/b)
+  "Luke 20:41-21:4"         chapter-spanning range
+  "John 17:1-11(12-26)"     parenthetical optional suffix
+  "Isa 42:(1-9)10-17"       parenthetical optional prefix
+  "Rev 21:1-4,-14"          ambiguous — handled via KNOWN_OVERRIDES
 """
 from __future__ import annotations
 
@@ -20,6 +24,8 @@ EN_DASH = "–"
 
 # Pre-built overrides for genuinely ambiguous references.
 # Maps the raw reference string to a list of (start_chapter, start_verse, end_chapter, end_verse).
+# Keyed on the *normalized* form (en-dashes) so lookup works regardless of
+# whether the caller passed hyphens or en-dashes.
 KNOWN_OVERRIDES: dict[str, list[tuple[str, list[tuple[int, int, int, int]]]]] = {
     "Rev 21:1–4,–14": [("Rev", [(21, 1, 21, 4), (21, 9, 21, 14)])],
 }
@@ -38,9 +44,15 @@ def parse_reference(ref: str) -> list[VerseRange]:
     """
     Parse a lectionary reference string into a list of VerseRange objects.
 
+    Accepts ASCII hyphen (-) or Unicode en-dash (–) as the range separator;
+    both are treated identically.
+
     Returns an empty list if the reference cannot be parsed.
     """
     ref = ref.strip()
+    # Normalize ASCII hyphen to en-dash so all downstream logic uses one separator.
+    # Only replace hyphens that sit between digits or digit+letter, not word-hyphens.
+    ref = ref.replace("-", EN_DASH)
 
     # Check known overrides first
     if ref in KNOWN_OVERRIDES:

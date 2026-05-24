@@ -14,17 +14,17 @@ router = APIRouter(prefix="/api/bible", tags=["bible"])
     description="""
 Return verse text for any BCP lectionary Bible reference string.
 
-Supported formats (range separator is **en-dash** U+2013, not ASCII hyphen):
+Supported formats (both ASCII hyphen `-` and en-dash `–` are accepted):
 
 | Format | Example |
 |--------|---------|
-| Simple range | `Isa 1:1–9` |
-| Multi-range, same chapter | `Isa 5:8–12, 18–23` |
-| Semicolon-separated sections | `Gal 3:23–29; 4:4–7` |
-| Letter-suffixed verse | `2 Pet 2:1–10a` |
-| Cross-chapter range | `Luke 20:41–21:4` |
-| Parenthetical optional suffix | `John 17:1–11(12–26)` |
-| Parenthetical optional prefix | `Isa 42:(1–9)10–17` |
+| Simple range | `Isa 1:1-9` |
+| Multi-range, same chapter | `Isa 5:8-12, 18-23` |
+| Semicolon-separated sections | `Gal 3:23-29; 4:4-7` |
+| Letter-suffixed verse | `2 Pet 2:1-10a` |
+| Cross-chapter range | `Luke 20:41-21:4` |
+| Parenthetical optional suffix | `John 17:1-11(12-26)` |
+| Parenthetical optional prefix | `Isa 42:(1-9)10-17` |
 
 Apocryphal books (Sir, Wis, Tob, Jdt, Bar, 1–2 Macc, 1–2 Esd) are supported.
 Text source: King James Version with Apocrypha (KJVA).

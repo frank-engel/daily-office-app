@@ -80,3 +80,32 @@ class TestEdgeCases:
     def test_nt_book(self):
         result = parse_reference(f"Rev 4:1{EN}11")
         assert result == [r("Rev", 4, 1, 4, 11)]
+
+
+class TestHyphenNormalization:
+    """ASCII hyphens must be accepted identically to en-dashes."""
+
+    def test_hyphen_simple_range(self):
+        assert parse_reference("Isa 1:1-9") == [r("Isa", 1, 1, 1, 9)]
+
+    def test_hyphen_cross_chapter(self):
+        assert parse_reference("Luke 20:41-21:4") == [r("Luke", 20, 41, 21, 4)]
+
+    def test_hyphen_multi_range(self):
+        result = parse_reference("Isa 5:8-12, 18-23")
+        assert result == [r("Isa", 5, 8, 5, 12), r("Isa", 5, 18, 5, 23)]
+
+    def test_hyphen_semicolon_sections(self):
+        result = parse_reference("Gal 3:23-29; 4:4-7")
+        assert result == [r("Gal", 3, 23, 3, 29), r("Gal", 4, 4, 4, 7)]
+
+    def test_hyphen_letter_suffix(self):
+        assert parse_reference("2 Pet 2:1-10a") == [r("2 Pet", 2, 1, 2, 10)]
+
+    def test_hyphen_parenthetical(self):
+        assert parse_reference("John 17:1-11(12-26)") == [r("John", 17, 1, 17, 11)]
+
+    def test_mixed_hyphen_and_en_dash(self):
+        # Mixing separators in one string should still parse correctly
+        result = parse_reference(f"Isa 5:8-12, 18{EN}23")
+        assert result == [r("Isa", 5, 8, 5, 12), r("Isa", 5, 18, 5, 23)]

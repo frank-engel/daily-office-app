@@ -115,6 +115,11 @@ the full Anglican canon including Apocrypha (80 books). The code is database-agn
 via `book_map.py`; switching translations in the future only requires updating that
 file and the table name constants in `db.py`.
 
+**Why accept both hyphen and en-dash in references?**  
+The BCP lectionary JSON source uses en-dashes internally. Rather than requiring callers
+to know that, `parse_reference()` normalizes ASCII hyphens to en-dashes on entry. The
+internal representation stays consistent; the public API stays ergonomic.
+
 **Why in-memory lectionary index?**  
 The JSON files are ~400 KB total and loaded once at startup. In-memory dict lookup
 is O(1) and far simpler than an additional SQLite table for 810 lectionary entries.
