@@ -44,7 +44,9 @@ def first_sunday_of_advent(year: int) -> date:
     """Return the First Sunday of Advent for the liturgical year beginning in *year*."""
     nov_30 = date(year, 11, 30)
     dow = nov_30.weekday()  # Mon=0 … Sun=6
-    if dow <= 3:
+    # Mon–Wed (0–2): prev Sunday is ≤3 days away — go back
+    # Thu–Sun (3–6): next Sunday is ≤3 days away — go forward
+    if dow < 3:
         return nov_30 - timedelta(days=dow + 1)
     else:
         return nov_30 + timedelta(days=6 - dow)

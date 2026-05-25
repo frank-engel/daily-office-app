@@ -75,10 +75,12 @@ def test_trinity_sunday_2026():
     assert "Trinity" in ctx["title"]
 
 
-def test_pentecost_weekday_returns_none():
-    # Monday after Pentecost — no lectionary entry
+def test_pentecost_weekday_resolves_to_proper():
+    # Monday after Pentecost — falls under the current Proper week (Proper 3 in 2026)
     ctx = liturgical_context(date(2026, 5, 25))
-    assert ctx is None
+    assert ctx is not None
+    assert ctx["week"].startswith("Proper")
+    assert ctx["day"] == "Monday"
 
 
 # ---------------------------------------------------------------------------
@@ -291,9 +293,11 @@ def test_resolve_eve_of_pentecost():
     assert result["morning_lessons"] or result["evening_lessons"]
 
 
-def test_resolve_pentecost_weekday_is_none():
+def test_resolve_pentecost_weekday_has_entry():
+    # Monday after Pentecost resolves to the current Proper's weekday readings
     result = resolve_office(date(2026, 5, 25))
-    assert result is None
+    assert result is not None
+    assert result["week"].startswith("Proper")
 
 
 def test_resolve_trinity_eve_2026():

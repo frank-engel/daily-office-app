@@ -53,8 +53,11 @@ def resolve_office(d: date) -> dict | None:
     week = ctx["week"]
     day = ctx["day"]
 
-    # Look up the entry
+    # Look up the entry; fall back to holy day index for fixed-calendar feasts
     entry = DAILY_INDEX.get((cycle, week, day))
+    if entry is None:
+        month_day = f"{MONTH_ABBREVS[d.month]} {d.day}"
+        entry = HOLY_DAY_INDEX.get(month_day)
     if entry is None:
         return None
 

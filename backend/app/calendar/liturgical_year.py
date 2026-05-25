@@ -47,8 +47,7 @@ def liturgical_context(d: date) -> dict | None:
     Return the liturgical week context for date *d*:
         {"week": str, "day": str, "cycle": int, "season": str}
 
-    Returns None for dates that fall in gaps with no lectionary entry
-    (e.g. Dec 26-28 on a weekday, Mon-Fri between Pentecost and Trinity).
+    Returns None for dates that fall outside the covered lectionary range.
     """
     # Determine which Easter year governs this date
     advent_this = first_sunday_of_advent(d.year)
@@ -74,7 +73,10 @@ def liturgical_context(d: date) -> dict | None:
     # ── ADVENT ─────────────────────────────────────────────────────────────
     if advent_start <= d < christmas:
         n = (d - advent_start).days // 7 + 1
-        return {"week": f"Week of {n} Advent", "day": _day_name(d),
+        # Dec 24 (Christmas Eve) has its own lectionary entry keyed "Dec 24",
+        # not a generic Saturday entry — use the month-day name when it applies.
+        day = "Dec 24" if (d.month == 12 and d.day == 24) else _day_name(d)
+        return {"week": f"Week of {n} Advent", "day": day,
                 "cycle": cycle, "season": "Advent"}
 
     # ── CHRISTMAS (Dec 25 – Jan 5) ─────────────────────────────────────────
@@ -142,10 +144,7 @@ def liturgical_context(d: date) -> dict | None:
     if d == pent:
         return {"week": "Pentecost", "day": "Sunday", "cycle": cycle, "season": "Easter"}
 
-    # ── WEEKDAYS BETWEEN PENTECOST AND TRINITY (no lectionary entries) ─────
     trinity_eve = trinity - timedelta(days=1)
-    if pent < d < trinity_eve:
-        return None
 
     # ── EVE OF TRINITY SUNDAY ──────────────────────────────────────────────
     if d == trinity_eve:
