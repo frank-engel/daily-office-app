@@ -8,8 +8,10 @@ from fastapi.templating import Jinja2Templates
 from app.bible.db import startup_check
 from app.lectionary.loader import load_lectionary
 from app.api.bible import router as bible_router
+from app.api.habits import router as habits_router
 from app.api.office import router as office_router, build_office_context
 from app.api.psalms import router as psalms_router
+from app.habits.db import get_completions, init_db, is_complete, mark_complete, unmark
 
 app = FastAPI(
     title="Anglican Daily Office API",
@@ -58,11 +60,13 @@ TEMPLATES = Jinja2Templates(directory=Path(__file__).parent / "app" / "templates
 async def startup() -> None:
     load_lectionary()
     await startup_check()
+    await init_db()
 
 
 app.include_router(office_router)
 app.include_router(bible_router)
 app.include_router(psalms_router)
+app.include_router(habits_router)
 
 
 # ── HTML routes ──────────────────────────────────────────────────────────────
@@ -113,6 +117,9 @@ async def office_html(request: Request, office_date: str):
             status_code=404,
         )
 
+    morning_complete = await is_complete(office_date, "morning")
+    evening_complete = await is_complete(office_date, "evening")
+
     return TEMPLATES.TemplateResponse(
         request,
         "office.html",
@@ -122,6 +129,8 @@ async def office_html(request: Request, office_date: str):
             "prev_date": prev_date,
             "next_date": next_date,
             "today": today,
+            "morning_complete": morning_complete,
+            "evening_complete": evening_complete,
             **ctx,
         },
     )
@@ -137,10 +146,65 @@ async def office_tab_partial(request: Request, office_date: str, tab: str):
             content=f'<p class="text-red-600 p-4">No office data for {office_date}.</p>',
             status_code=404,
         )
+    morning_complete = await is_complete(office_date, "morning")
+    evening_complete = await is_complete(office_date, "evening")
     return TEMPLATES.TemplateResponse(
         request,
         "_office_tab.html",
-        {"tab": tab, **ctx},
+        {
+            "tab": tab,
+            "morning_complete": morning_complete,
+            "evening_complete": evening_complete,
+            **ctx,
+        },
+    )
+
+
+@app.post("/partials/habits/{date}/{office}/toggle", include_in_schema=False, response_class=HTMLResponse)
+async def habit_toggle(request: Request, date: str, office: str, style: str = "pill"):
+    if office not in ("morning", "evening"):
+        return HTMLResponse("<p>Invalid office.</p>", status_code=400)
+    currently_complete = await is_complete(date, office)
+    if currently_complete:
+        await unmark(date, office)
+        new_complete = False
+    else:
+        await mark_complete(date, office)
+        new_complete = True
+    return TEMPLATES.TemplateResponse(
+        request,
+        "_habit_toggle.html",
+        {"date": date, "office": office, "complete": new_complete, "style": style},
+    )
+
+
+# ── Habits page ──────────────────────────────────────────────────────────────
+
+@app.get("/habits", include_in_schema=False, response_class=HTMLResponse)
+async def habits_html(request: Request):
+    today = datetime.date.today()
+    from_date = (today - datetime.timedelta(days=29)).isoformat()
+    to_date = today.isoformat()
+
+    completions = await get_completions(from_date, to_date)
+    completed_set = {(c["date"], c["office"]) for c in completions}
+
+    days = []
+    for i in range(29, -1, -1):
+        d = today - datetime.timedelta(days=i)
+        iso = d.isoformat()
+        days.append({
+            "date": iso,
+            "formatted": d.strftime("%a %b %d"),
+            "is_today": d == today,
+            "morning_complete": (iso, "morning") in completed_set,
+            "evening_complete": (iso, "evening") in completed_set,
+        })
+
+    return TEMPLATES.TemplateResponse(
+        request,
+        "habits.html",
+        {"days": days, "today": today.isoformat()},
     )
 
 

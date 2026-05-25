@@ -1,0 +1,25 @@
+{# Reusable habit toggle element.
+   Required vars: date, office, complete (bool), style ("circle" | "pill") #}
+
+{% if style == "circle" %}
+<div id="habit-{{ date }}-{{ office }}"
+     class="w-9 h-9 flex items-center justify-center rounded-full border-2 cursor-pointer transition-colors select-none
+            {% if complete %}bg-stone-800 border-stone-800 text-stone-100{% else %}border-stone-200 text-stone-300 hover:border-stone-400 hover:text-stone-400{% endif %}"
+     hx-post="/partials/habits/{{ date }}/{{ office }}/toggle?style=circle"
+     hx-target="this"
+     hx-swap="outerHTML"
+     title="{{ office | title }} Prayer{% if complete %} — completed. Click to undo.{% else %} — tap to mark complete.{% endif %}">
+  {% if complete %}✓{% else %}·{% endif %}
+</div>
+
+{% else %}
+<div id="habit-{{ date }}-{{ office }}"
+     class="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm cursor-pointer transition-colors select-none
+            {% if complete %}bg-stone-800 text-stone-100 hover:bg-stone-700{% else %}border border-stone-300 text-stone-500 hover:bg-stone-50{% endif %}"
+     hx-post="/partials/habits/{{ date }}/{{ office }}/toggle?style=pill"
+     hx-target="this"
+     hx-swap="outerHTML">
+  {% if complete %}<span class="text-green-400">✓</span> {{ office | title }} Prayer — Done
+  {% else %}Mark {{ office | title }} Prayer Complete{% endif %}
+</div>
+{% endif %}

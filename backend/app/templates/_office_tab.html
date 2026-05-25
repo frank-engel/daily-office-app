@@ -62,3 +62,11 @@
 {% else %}
 <p class="text-stone-400 italic">No lessons appointed.</p>
 {% endif %}
+
+{# ── Completion toggle ────────────────────────────────────────────────────── #}
+{% set complete = morning_complete if tab == 'morning' else evening_complete %}
+{% set office = tab %}
+{% set style = "pill" %}
+<div class="mt-10 pt-6 border-t border-stone-200 flex justify-center">
+  {% include "_habit_toggle.html" %}
+</div>
