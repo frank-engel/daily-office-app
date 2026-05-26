@@ -40,6 +40,44 @@
   </p>
 </div>
 
+{# ── Collect of the Day ──────────────────────────────────────────────────── #}
+{% if collect %}
+<div class="mb-6 p-4 bg-stone-50 border border-stone-200 rounded-lg">
+  <div class="flex items-center justify-between mb-2">
+    <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase">Collect of the Day</p>
+    <div class="flex gap-1 text-xs">
+      <button id="btn-contemp" onclick="setCollectStyle('contemporary')"
+        class="px-2 py-0.5 rounded border border-stone-300 bg-stone-700 text-white transition-colors">
+        Contemporary
+      </button>
+      <button id="btn-trad" onclick="setCollectStyle('traditional')"
+        class="px-2 py-0.5 rounded border border-stone-300 text-stone-500 hover:bg-stone-200 transition-colors">
+        Traditional
+      </button>
+    </div>
+  </div>
+  {% if collect.preface %}
+  <p class="text-xs text-stone-400 italic mb-2">{{ collect.preface }}</p>
+  {% endif %}
+  <p id="collect-contemporary" class="text-sm leading-relaxed text-stone-700">{{ collect.contemporary }}</p>
+  <p id="collect-traditional"  class="text-sm leading-relaxed text-stone-700 hidden">{{ collect.traditional }}</p>
+</div>
+
+<script>
+function setCollectStyle(style) {
+  var isContemp = style === 'contemporary';
+  document.getElementById('collect-contemporary').classList.toggle('hidden', !isContemp);
+  document.getElementById('collect-traditional').classList.toggle('hidden', isContemp);
+  document.getElementById('btn-contemp').classList.toggle('bg-stone-700', isContemp);
+  document.getElementById('btn-contemp').classList.toggle('text-white', isContemp);
+  document.getElementById('btn-contemp').classList.toggle('text-stone-500', !isContemp);
+  document.getElementById('btn-trad').classList.toggle('bg-stone-700', !isContemp);
+  document.getElementById('btn-trad').classList.toggle('text-white', !isContemp);
+  document.getElementById('btn-trad').classList.toggle('text-stone-500', isContemp);
+}
+</script>
+{% endif %}
+
 {# ── Tab bar ─────────────────────────────────────────────────────────────── #}
 <div class="flex border-b border-stone-200 mb-6">
   <button

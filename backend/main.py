@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.bible.db import startup_check
+from app.collects.loader import load_collects
 from app.lectionary.loader import load_lectionary
 from app.api.bible import router as bible_router
 from app.api.habits import router as habits_router
@@ -59,6 +60,7 @@ TEMPLATES = Jinja2Templates(directory=Path(__file__).parent / "app" / "templates
 @app.on_event("startup")
 async def startup() -> None:
     load_lectionary()
+    load_collects()
     await startup_check()
     await init_db()
 

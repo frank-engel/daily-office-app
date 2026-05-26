@@ -5,8 +5,10 @@ from datetime import date as DateType
 from fastapi import APIRouter, HTTPException, Path
 
 from app.bible.db import fetch_psalm, fetch_verses
+from app.calendar.liturgical_year import liturgical_context
+from app.collects.resolver import resolve_collect
 from app.lectionary.resolver import resolve_office
-from app.schemas import LessonEntry, OfficeResponse, PsalmEntry, PsalmVerseResponse, VerseResponse
+from app.schemas import CollectEntry, LessonEntry, OfficeResponse, PsalmEntry, PsalmVerseResponse, VerseResponse
 
 router = APIRouter(prefix="/api/office", tags=["office"])
 
@@ -70,6 +72,8 @@ async def build_office_context(office_date: str) -> dict | None:
     result = resolve_office(d)
     if result is None:
         return None
+    lit_ctx = liturgical_context(d) or {}
+    collect_raw = resolve_collect(d, lit_ctx)
     return {
         "date": result["date"],
         "title": result.get("title"),
@@ -80,6 +84,7 @@ async def build_office_context(office_date: str) -> dict | None:
         "evening_psalms": await _expand_psalms(result["psalms"]["evening"]),
         "morning_lessons": await _expand_lessons(result["morning_lessons"]),
         "evening_lessons": await _expand_lessons(result["evening_lessons"]),
+        "collect": CollectEntry(**collect_raw) if collect_raw else None,
     }
 
 
@@ -136,5 +141,6 @@ async def get_office(
         psalms={"morning": ctx["morning_psalms"], "evening": ctx["evening_psalms"]},
         morning_lessons=ctx["morning_lessons"],
         evening_lessons=ctx["evening_lessons"],
+        collect=ctx.get("collect"),
         reflection=None,
     )

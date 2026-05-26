@@ -34,6 +34,13 @@ class PsalmGroup(BaseModel):
     evening: list[PsalmEntry]
 
 
+class CollectEntry(BaseModel):
+    title: str
+    preface: str
+    traditional: str
+    contemporary: str
+
+
 class OfficeResponse(BaseModel):
     date: str = Field(description="ISO date, e.g. '2026-05-24'")
     title: str | None = Field(description="Feast or Sunday title, if any")
@@ -46,6 +53,10 @@ class OfficeResponse(BaseModel):
     )
     evening_lessons: dict[str, LessonEntry] = Field(
         description="Evening lessons keyed by slot: 'first', 'second'"
+    )
+    collect: CollectEntry | None = Field(
+        default=None,
+        description="Collect of the Day (traditional and contemporary text)"
     )
     reflection: None = Field(
         default=None,
