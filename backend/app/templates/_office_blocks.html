@@ -1,0 +1,264 @@
+{% for block in blocks %}
+
+  {# ── heading ──────────────────────────────────────────────────────────── #}
+  {% if block.type == "heading" %}
+    {% if block.level == 1 %}
+      <h2 class="text-xl font-bold text-stone-800 text-center mt-8 mb-2 tracking-wide">{{ block.text }}</h2>
+    {% else %}
+      <h3 class="text-xs font-semibold tracking-widest text-stone-400 uppercase text-center mt-8 mb-3">{{ block.text }}</h3>
+    {% endif %}
+
+  {# ── rubric ───────────────────────────────────────────────────────────── #}
+  {% elif block.type == "rubric" %}
+    <p class="text-xs italic text-stone-400 text-center mb-3">{{ block.text }}</p>
+
+  {# ── opening sentence ─────────────────────────────────────────────────── #}
+  {% elif block.type == "sentence" %}
+    <div class="mb-6 text-center">
+      {% if block.text.startswith("__FILL__") %}
+        <div class="bg-amber-50 border border-amber-200 rounded px-4 py-3 text-xs text-amber-700">
+          <strong>Opening Sentence</strong> — paste from BCP pp. 75-78
+          {% if block.reference %}<br><span class="font-mono">({{ block.reference }})</span>{% endif %}
+        </div>
+      {% else %}
+        <p class="text-base leading-relaxed text-stone-700 italic">{{ block.text }}</p>
+        {% if block.reference %}
+          <p class="text-xs text-stone-400 mt-1">— {{ block.reference }}</p>
+        {% endif %}
+      {% endif %}
+    </div>
+
+  {# ── confession ───────────────────────────────────────────────────────── #}
+  {% elif block.type == "confession" %}
+    <div class="mb-6 border-l-2 border-stone-200 pl-4">
+      <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-3">{{ block.label }}</p>
+      {% if block.rubric %}
+        <p class="text-xs italic text-stone-400 mb-2">{{ block.rubric }}</p>
+      {% endif %}
+      {% if block.invitation.startswith("__FILL__") %}
+        <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700 mb-2">
+          Invitation — paste from BCP p. {{ block.bcp_page }}
+        </div>
+      {% else %}
+        <p class="text-sm leading-relaxed text-stone-600 italic mb-3">{{ block.invitation }}</p>
+      {% endif %}
+      {% if block.rubric_2 %}
+        <p class="text-xs italic text-stone-400 mb-2">{{ block.rubric_2 }}</p>
+      {% endif %}
+      {% if block.confession.startswith("__FILL__") %}
+        <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700 mb-2">
+          Confession — paste from BCP p. {{ block.bcp_page }}
+        </div>
+      {% else %}
+        <p class="text-sm leading-relaxed text-stone-700 whitespace-pre-line mb-3">{{ block.confession }}</p>
+      {% endif %}
+      {% if block.rubric_3 %}
+        <p class="text-xs italic text-stone-400 mb-2">{{ block.rubric_3 }}</p>
+      {% endif %}
+      {% if block.absolution.startswith("__FILL__") %}
+        <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700">
+          Absolution — paste from BCP p. {{ block.bcp_page }}
+        </div>
+      {% else %}
+        <p class="text-sm leading-relaxed text-stone-700 whitespace-pre-line">{{ block.absolution }}</p>
+      {% endif %}
+    </div>
+
+  {# ── versicle pairs ───────────────────────────────────────────────────── #}
+  {% elif block.type == "versicle" %}
+    <div class="mb-4">
+      {% for pair in block.pairs %}
+        {% if pair.leader.startswith("__FILL__") %}
+          <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700 mb-1">
+            Versicle — paste from BCP
+          </div>
+        {% else %}
+          <div class="flex gap-1 text-sm leading-snug mb-1">
+            <span class="text-stone-400 font-semibold shrink-0 w-4">V.</span>
+            <span class="text-stone-700">{{ pair.leader }}</span>
+          </div>
+          {% if pair.response %}
+            <div class="flex gap-1 text-sm leading-snug mb-2">
+              <span class="text-stone-400 font-semibold shrink-0 w-4">R.</span>
+              <span class="text-stone-700">{{ pair.response }}</span>
+            </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+  {# ── canticle ─────────────────────────────────────────────────────────── #}
+  {% elif block.type == "canticle" %}
+    <div class="mb-6">
+      {% if block.label %}
+        <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-1">{{ block.label }}</p>
+      {% endif %}
+      <div class="flex items-baseline gap-2 mb-1">
+        <p class="text-sm font-semibold text-stone-700">
+          {{ block.name }}
+          {% if block.aka %}<span class="font-normal italic text-stone-500">({{ block.aka }})</span>{% endif %}
+        </p>
+        {% if block.bcp_page %}
+          <span class="text-xs text-stone-400">BCP p. {{ block.bcp_page }}</span>
+        {% endif %}
+      </div>
+      {% if block.source %}
+        <p class="text-xs text-stone-400 mb-2">{{ block.source }}</p>
+      {% endif %}
+      {% if block.instruction %}
+        <p class="text-xs italic text-stone-400 mb-2">{{ block.instruction }}</p>
+      {% endif %}
+      <div class="pl-2 border-l-2 border-stone-100">
+        {% for line in block.lines %}
+          {% if line.startswith("__FILL__") %}
+            <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700">
+              {{ block.name }} text — paste from BCP{% if block.bcp_page %} p. {{ block.bcp_page }}{% endif %}
+            </div>
+          {% elif line == "" %}
+            <div class="h-2"></div>
+          {% else %}
+            <p class="text-sm leading-relaxed text-stone-700">{{ line }}</p>
+          {% endif %}
+        {% endfor %}
+        {% if block.gloria %}
+          <div class="mt-2 text-sm text-stone-600 italic">
+            Glory to the Father, and to the Son, and to the Holy Spirit: *<br>
+            <span class="pl-4">as it was in the beginning, is now, and will be for ever. Amen.</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  {# ── psalm ────────────────────────────────────────────────────────────── #}
+  {% elif block.type == "psalm" %}
+    <div class="mb-6">
+      <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-2">
+        Psalm {{ block.number }}{% if block.optional %} <span class="normal-case font-normal">(optional)</span>{% endif %}
+      </p>
+      <div class="pl-2 border-l-2 border-stone-100 space-y-1">
+        {% for v in block.verses %}
+          <p class="text-sm leading-relaxed text-stone-700">
+            <span class="text-stone-400 text-xs mr-1">{{ v.verse }}</span>{{ v.text }}
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+
+  {# ── lesson ───────────────────────────────────────────────────────────── #}
+  {% elif block.type == "lesson" %}
+    <div class="mb-6">
+      <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-1">
+        A Reading
+      </p>
+      <p class="text-sm font-medium text-stone-600 mb-2">{{ block.reference }}</p>
+      <div class="pl-2 border-l-2 border-stone-100 space-y-1">
+        {% for v in block.verses %}
+          <p class="text-sm leading-relaxed text-stone-700">
+            <span class="text-stone-400 text-xs mr-1">{{ v.chapter }}:{{ v.verse }}</span>{{ v.text }}
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+
+  {# ── text (creed, Lord's Prayer, thanksgiving, etc.) ─────────────────── #}
+  {% elif block.type == "text" %}
+    <div class="mb-5">
+      {% if block.label %}
+        <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-2">{{ block.label }}</p>
+      {% endif %}
+      {% if block.rubric %}
+        <p class="text-xs italic text-stone-400 mb-1">{{ block.rubric }}</p>
+      {% endif %}
+      {% if block.intro is defined and block.intro %}
+        <p class="text-xs italic text-stone-500 mb-1">{{ block.intro }}</p>
+      {% endif %}
+      {% if block.rubric_2 is defined and block.rubric_2 %}
+        <p class="text-xs italic text-stone-400 mb-1">{{ block.rubric_2 }}</p>
+      {% endif %}
+      {% if block.text.startswith("__FILL__") %}
+        <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700">
+          {{ block.label or "Text" }}{% if block.bcp_page %} — paste from BCP p. {{ block.bcp_page }}{% endif %}
+        </div>
+      {% else %}
+        <p class="text-sm leading-relaxed text-stone-700 whitespace-pre-line">{{ block.text }}</p>
+      {% endif %}
+    </div>
+
+  {# ── collect ──────────────────────────────────────────────────────────── #}
+  {% elif block.type == "collect" %}
+    <div class="mb-4 p-3 bg-stone-50 border border-stone-200 rounded">
+      {% if block.label %}
+        <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-2">{{ block.label }}</p>
+      {% endif %}
+      {% if block.preface %}
+        <p class="text-xs italic text-stone-400 mb-1">{{ block.preface }}</p>
+      {% endif %}
+      {% if block.contemporary.startswith("__FILL__") %}
+        <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700">
+          {{ block.label or "Collect" }}{% if block.bcp_page %} — paste from BCP p. {{ block.bcp_page }}{% endif %}
+        </div>
+      {% elif block.traditional %}
+        <div class="flex items-center justify-end mb-2 gap-1 text-xs">
+          <button onclick="toggleCollect(this, 'contemp')"
+            data-target="collect-{{ loop.index }}"
+            class="px-2 py-0.5 rounded border border-stone-300 bg-stone-700 text-white transition-colors">
+            Contemporary
+          </button>
+          <button onclick="toggleCollect(this, 'trad')"
+            data-target="collect-{{ loop.index }}"
+            class="px-2 py-0.5 rounded border border-stone-300 text-stone-500 hover:bg-stone-200 transition-colors">
+            Traditional
+          </button>
+        </div>
+        <p id="collect-{{ loop.index }}-contemp" class="text-sm leading-relaxed text-stone-700">{{ block.contemporary }}</p>
+        <p id="collect-{{ loop.index }}-trad" class="text-sm leading-relaxed text-stone-700 hidden">{{ block.traditional }}</p>
+      {% else %}
+        <p class="text-sm leading-relaxed text-stone-700">{{ block.contemporary }}</p>
+      {% endif %}
+    </div>
+
+  {# ── suffrages ────────────────────────────────────────────────────────── #}
+  {% elif block.type == "suffrages" %}
+    <div class="mb-5">
+      <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-2">{{ block.label }}</p>
+      {% if block.rubric %}
+        <p class="text-xs italic text-stone-400 mb-2">{{ block.rubric }}</p>
+      {% endif %}
+      {% for pair in block.pairs %}
+        {% if pair.leader.startswith("__FILL__") %}
+          <div class="bg-amber-50 border border-amber-200 rounded px-3 py-2 text-xs text-amber-700 mb-1">
+            Suffrage {{ loop.index }} — paste from BCP{% if block.bcp_page %} p. {{ block.bcp_page }}{% endif %}
+          </div>
+        {% else %}
+          <div class="flex gap-1 text-sm leading-snug mb-0.5">
+            <span class="text-stone-400 font-semibold shrink-0 w-4">V.</span>
+            <span class="text-stone-700">{{ pair.leader }}</span>
+          </div>
+          <div class="flex gap-1 text-sm leading-snug mb-2">
+            <span class="text-stone-400 font-semibold shrink-0 w-4">R.</span>
+            <span class="text-stone-700">{{ pair.response }}</span>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+  {% endif %}
+{% endfor %}
+
+<script>
+function toggleCollect(btn, style) {
+  var target = btn.getAttribute('data-target');
+  var isContemp = style === 'contemp';
+  var contemp = document.getElementById(target + '-contemp');
+  var trad = document.getElementById(target + '-trad');
+  if (contemp) contemp.classList.toggle('hidden', !isContemp);
+  if (trad) trad.classList.toggle('hidden', isContemp);
+  var siblings = btn.parentElement.querySelectorAll('button');
+  siblings.forEach(function(b) {
+    var active = b === btn;
+    b.classList.toggle('bg-stone-700', active);
+    b.classList.toggle('text-white', active);
+    b.classList.toggle('text-stone-500', !active);
+  });
+}
+</script>

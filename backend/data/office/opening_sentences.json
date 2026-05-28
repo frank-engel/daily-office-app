@@ -1,0 +1,191 @@
+{
+  "_note": "Opening sentences for use at Morning and Evening Prayer, organized by liturgical season. The builder picks the first sentence for the current season. Add additional sentences as needed — the template will display whichever one the array index selects. All sentences are from BCP 1979 pp. 75-78. Replace __FILL__ with the exact BCP wording.",
+
+  "Advent": {
+    "bcp_page": 75,
+    "sentences": [
+      {
+        "reference": "Mark 13:35, 36",
+        "text": "Watch, for you know not when the master of the house will come, in the evening, or at midnight, or at cockcrow, or in the morning; lest he come suddenly and find you asleep."
+      },
+      {
+        "reference": "Isaiah 40:3",
+        "text": "In the wilderness prepare the way of the Lord, make straight in the desert a highway for our God."
+      },
+      {
+        "reference": "Isaiah 40:5",
+        "text": "The glory of the Lord shall be revealed, and all flesh shall see it together.  "
+      }
+    ]
+  },
+
+  "Christmas": {
+    "bcp_page": 75,
+    "sentences": [
+      {
+        "reference": "Luke 2:10, 11",
+        "text": "Behold, I bring you good news of a great joy, which will come to all the people; for unto you is born this day in the city of David, a Savior, who is Christ the Lord."
+      },
+      {
+        "reference": "Revelation 21:3",
+        "text": "Behold, the dwelling of God is with mankind. He will dwell with them, and they shall be his people, and God himself will be with them, and be their God."
+      }
+    ]
+  },
+
+  "Epiphany": {
+    "bcp_page": 75,
+    "sentences": [
+      {
+        "reference": "Isaiah 60:3",
+        "text": "Nations shall come to your light, and kings to the brightness of your rising."
+      },
+      {
+        "reference": "Isaiah 49:6b",
+        "text": "I will give you as a light to the nations, that my salvation may reach to the end of the earth."
+      },
+      {
+        "reference": "Malachi 1:11",
+        "text": "From the rising of the sun to its setting my Name shall be great among the nations, and in every place incense shall be offered to my Name, and a pure offering: for my Name shall be great among the nations, says the Lord of hosts."
+      }
+    ]
+  },
+
+  "Lent": {
+    "bcp_page": 76,
+    "sentences": [
+      {
+        "reference": "I John 1:8, 9",
+        "text": "If we say we have no sin, we deceive ourselves, and the truth is not in us; but if we confess our sins, God who is faithful and just, will forgive our sins and cleanse us from all unrighteousness."
+      },
+      {
+        "reference": "Joel 2:13",
+        "text": "Rend your hearts and not your garments. Return to the Lord your God, for he is gracious and merciful, slow to anger and abounding in steadfast love, and repents of evil."
+      },
+      {
+        "reference": "Luke 15:18, 19",
+        "text": "I will arise and go to my father, and I will say to him, \"Father, I have sinned against heaven, and before you; I am no longer worthy to be called your son.\""
+      },
+      {
+        "reference": "Daniel 9:9, 10",
+        "text": "To the Lord our God belong mercy and forgiveness, because we have rebelled against him and have not obeyed the voice of the Lord our God by following his laws which he set before us."
+      },
+      {
+        "reference": "Mark 8:34",
+        "text": "Jesus said, \"If anyone will come after me, let him deny himself, and take up his cross, and follow me.\""
+      }
+    ]
+  },
+
+  "Holy Week": {
+    "bcp_page": 76,
+    "sentences": [
+      {
+        "reference": "Isaiah 53:6",
+        "text": "All we like sheep have gone astray; we have turned every one to his own way; and the Lord has laid on him the iniquity of us all."
+      },
+      {
+        "reference": "Lamentations 1:12",
+        "text": "Is it nothing to you, all you who pass by? Look and see if there is any sorrow like my sorrow which was brought upon me, whom the Lord hath afflicted. "
+      }
+    ]
+  },
+
+  "Easter": {
+    "bcp_page": 76,
+    "sentences": [
+      {
+        "reference": "Psalm 118:24",
+        "text": "On this day the Lord has acted; we will rejoice and be glad in it."
+      },
+      {
+        "reference": "1 Corinthians 15:57",
+        "text": "Thanks be to God, who gives us the victory through our Lord Jesus Christ."
+      },
+      {
+        "reference": "Colossians 3:1",
+        "text": "If then you have been raised with Christ, seek the things that are above, where Christ is, seated at the right hand of God."
+      },
+      {
+        "reference": "Hebrews 9:24",
+        "text": "Christ has entered, not into a sanctuary made with hands, a copy of the true one, but into heaven itself, now to appear in the presence of God on our behalf."
+      },
+      {
+        "reference": "Acts 1:8",
+        "text": "You shall receive power when the Holy Spirit has come upon you; and you shall be my witness in Jerusalem, and in all Judea, and Samaria, and to the ends of the earth."
+      }
+    ]
+  },
+
+  "Trinity Sunday": {
+    "bcp_page": 77,
+    "sentences": [
+      {
+        "reference": "Revelation 4:8",
+        "text": "Holy, holy, holy is the Lord God Almighty, who was, and is,and is to come."
+      }
+    ]
+  },
+
+  "All Saints and other Major Saints' Days": {
+    "bcp_page": 77,
+    "sentences": [
+      {
+        "reference": "Colossians 1:12",
+        "text": "We give thanks to the Father, who has made us worthy to share in the inheritance of the saints in light."
+      },
+      {
+        "reference": "Ephesians 2:19",
+        "text": "You are no longer strangers and sojourners, but fellow citizens with the saints and members of the household of God."
+      },
+      {
+        "reference": "Psalm 19:4",
+        "text": "Their sound has gone out into all lands, and their message to the ends of the world."
+      }
+    ]
+  },
+
+  "Occasions of Thanksgiving": {
+    "bcp_page": 78,
+    "sentences": [
+      {
+        "reference": "Psalm 105:1",
+        "text": "HoO give thanks to the Lord, and call upon his Name; make known his deeds among the peoples."
+      }
+    ]
+  },
+
+  "At any Time": {
+    "bcp_page": 77,
+    "sentences": [
+      {
+        "reference": "Philippians 1:2",
+        "text": "Grace to you and peace from God our Father and from the Lord Jesus Christ."
+      },
+      {
+        "reference": "Psalm 122:1",
+        "text": "I was glad when they said to me, \"Let us go to the house of the Lord.\""
+      },
+      {
+        "reference": "Psalm 19:14",
+        "text": "Let the words of my mouth and the meditation of my heart be acceptable in your sight, O Lord, my strength and my redeemer."
+      },
+      {
+        "reference": "Psalm 43:3",
+        "text": "Send out your light and your truth, that they may lead me, and bring me to your holy hill and to your dwelling."
+      },
+      {
+        "reference": "Habakkuk 2:20",
+        "text": "The Lord is in his holy temple; let all the earth keep silence before him."
+      },
+      {
+        "reference": "John 4:23",
+        "text": "The hour is coming, and now is, when the true worshipers will worship the Father in spirit and in truth, for such the Father is our God."  
+      },
+      {
+        "reference": "Isaiah 57:15",
+        "text": "Thus says the high and lofty One who inhabits eternity, whose name is Holy, \"I dwell in the high and holy place and also with the one who has a contrite and humble spirit, to revive the spirit of the humble and to revive the heart of the contrite.\""
+      }
+    ]
+  }
+}

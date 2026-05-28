@@ -11,8 +11,10 @@ from app.lectionary.loader import load_lectionary
 from app.api.bible import router as bible_router
 from app.api.habits import router as habits_router
 from app.api.office import router as office_router, build_office_context
+from app.api.office_full import router as office_full_router
 from app.api.psalms import router as psalms_router
 from app.habits.db import get_completions, init_db, is_complete, mark_complete, unmark
+from app.office.loader import load_office_texts
 
 app = FastAPI(
     title="Anglican Daily Office API",
@@ -61,11 +63,13 @@ TEMPLATES = Jinja2Templates(directory=Path(__file__).parent / "app" / "templates
 async def startup() -> None:
     load_lectionary()
     load_collects()
+    load_office_texts()
     await startup_check()
     await init_db()
 
 
 app.include_router(office_router)
+app.include_router(office_full_router)
 app.include_router(bible_router)
 app.include_router(psalms_router)
 app.include_router(habits_router)
@@ -177,6 +181,61 @@ async def habit_toggle(request: Request, date: str, office: str, style: str = "p
         request,
         "_habit_toggle.html",
         {"date": date, "office": office, "complete": new_complete, "style": style},
+    )
+
+
+# ── Full Office page ─────────────────────────────────────────────────────────
+
+@app.get("/full/{office_date}", include_in_schema=False, response_class=HTMLResponse)
+async def office_full_html(request: Request, office_date: str, suffrages: str = "A"):
+    try:
+        d = datetime.date.fromisoformat(office_date)
+    except ValueError:
+        return TEMPLATES.TemplateResponse(
+            request, "office_full.html",
+            {"error": f"Invalid date: {office_date!r}", "date": office_date,
+             "formatted_date": office_date, "prev_date": None, "next_date": None,
+             "today": datetime.date.today().isoformat()},
+            status_code=422,
+        )
+
+    from app.office.builder import build_office
+    from app.api.office_full import _expand_blocks
+
+    prev_date = (d - datetime.timedelta(days=1)).isoformat()
+    next_date = (d + datetime.timedelta(days=1)).isoformat()
+    today = datetime.date.today().isoformat()
+    formatted_date = d.strftime("%A, %B %d, %Y")
+
+    ctx = await build_office_context(office_date)
+    suffrages_form = suffrages.upper() if suffrages.upper() in ("A", "B") else "A"
+
+    from app.office.builder import build_office
+    from app.api.office_full import _expand_blocks
+
+    morning_raw = build_office(d, "morning", suffrages_form)
+    evening_raw = build_office(d, "evening", suffrages_form)
+    morning_blocks = await _expand_blocks(morning_raw)
+    evening_blocks = await _expand_blocks(evening_raw)
+
+    return TEMPLATES.TemplateResponse(
+        request,
+        "office_full.html",
+        {
+            "date": office_date,
+            "formatted_date": formatted_date,
+            "prev_date": prev_date,
+            "next_date": next_date,
+            "today": today,
+            "title": ctx["title"] if ctx else None,
+            "week": ctx["week"] if ctx else "",
+            "season": ctx["season"] if ctx else "",
+            "cycle": ctx["cycle"] if ctx else "",
+            "service_name": "Daily Office",
+            "suffrages_form": suffrages_form,
+            "morning_blocks": morning_blocks,
+            "evening_blocks": evening_blocks,
+        },
     )
 
 

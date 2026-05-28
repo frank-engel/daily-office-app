@@ -1,0 +1,251 @@
+{
+  "_note": "Fixed liturgical texts for Rite II Morning and Evening Prayer. Short versicle/response pairs are filled in; longer prose texts are marked __FILL__ with BCP page references. Replace each __FILL__ with the exact BCP 1979 wording.",
+
+  "opening_versicle_morning": {
+    "bcp_page": 80,
+    "leader": "Lord, open our lips.",
+    "response": "And our mouth shall show forth your praise."
+  },
+
+  "opening_versicle_evening": {
+    "bcp_page": 117,
+    "leader": "O God, make speed to save us.",
+    "response": "O Lord, make haste to help us."
+  },
+
+  "gloria_patri": {
+    "bcp_page": 80,
+    "leader": "Glory to the Father, and to the Son, and to the Holy Spirit:",
+    "response": "as it was in the beginning, is now, and will be for ever. Amen."
+  },
+
+  "alleluia_versicle": {
+    "bcp_page": 80,
+    "leader": "Praise to the Lord!",
+    "response": "The Lord's Name be praised.",
+    "note": "Omitted in Lent. Used at Morning Prayer after the Gloria Patri."
+  },
+
+  "alleluia_evening": {
+    "bcp_page": 117,
+    "leader": "Praise to the Lord!",
+    "response": "The Lord's Name be praised.",
+    "note": "Omitted in Lent. Used at Evening Prayer after the Gloria Patri."
+  },
+
+  "confession_of_sin": {
+    "bcp_page": 79,
+    "rubric": "The Officiant says to the people",
+    "invitation": "Let us confess our sins against God and our neighbor.",
+    "rubric_2": "Silence may be kept. The Officiant and People together, all kneeling",
+    "confession": [
+      "Most merciful God,",
+      "we confess that we have sinned against you",
+      "in thought, word, and deed,",
+      "by what we have done,",
+      "and by what we have left undone.",
+      "We have not loved you with our whole heart;",
+      "we have not loved our neighbors as ourselves.",
+      "We are truly sorry and we humbly repent.",
+      "For the sake of your Son Jesus Christ,",
+      "have mercy on us and forgive us;",
+      "that we may delight in your will,",
+      "and walk in your ways,",
+      "to the glory of your Name. Amen."
+    ],
+    "rubric_3": "The Officiant alone stands and says",
+    "absolution": [
+      "Almighty God have mercy on you, forgive you all your sins",
+      "through our Lord Jesus Christ, strengthen you in all",
+      "goodness, and by the power of the Holy Spirit keep you in",
+      "eternal life. Amen."
+    ]
+  },
+
+  "apostles_creed": {
+    "bcp_page": 96,
+    "rubric": "Officiant and People together, all standing",
+    "text": [
+      "I believe in God, the Father almighty,",
+      "    creator of heaven and earth;",
+      "I believe in Jesus Christ, his only Son, our Lord.",
+      "    He was conceived by the power of the Holy Spirit",
+      "        and born of the Virgin Mary.",
+      "    He suffered under Pontius Pilate,",
+      "        was crucified, died, and was buried.",
+      "    He descended to the dead.",
+      "    On the third day he rose again.",
+      "    He ascended into heaven,",
+      "        and is seated at the right hand of the Father.",
+      "    He will come again to judge the living and the dead.",
+      "I believe in the Holy Spirit,",
+      "    the holy catholic Church,",
+      "    the communion of saints,",
+      "    the forgiveness of sins,",
+      "    the resurrection of the body,",
+      "    and the life everlasting. Amen."
+    ]
+  },
+
+  "lords_prayer": {
+    "bcp_page": 97,
+    "rubric": "The Officiant then continues",
+    "intro": "And now, as our Savior Christ has taught us, we are bold to say,",
+    "rubric_2": "People and Officiant",
+    "text": [
+      "Our Father, who art in heaven,",
+      "     hallowed be thy Name,",
+      "     thy kingdom come,",
+      "     thy will be done,",
+      "         on earth as it is in heaven.",
+      "Give us this day our daily bread.",
+      "And forgive us our trespasses,",
+      "     as we forgive those",
+      "         who trespass against us.",
+      "And lead us not into temptation,",
+      "     but deliver us from evil.",
+      "For thine is the kingdom,",
+      "     and the power, and the glory,",
+      "     for ever and ever. Amen."
+    ]
+  },
+
+  "suffrages_a": {
+    "bcp_page": 97,
+    "label": "Suffrages A",
+    "rubric": "V. = Officiant; R. = People",
+    "pairs": [
+      { "leader": "Show us your mercy, O Lord;", "response": "And grant us your salvation." },
+      { "leader": "Clothe your ministers with righteousness;", "response": "Let your people sing with joy." },
+      { "leader": "Give peace, O Lord, in all the world;", "response": "For only in you can we live in safety." },
+      { "leader": "Lord, keep this nation under your care;", "response": "And guide us in the way of justice and truth." },
+      { "leader": "Let your way be known upon earth;", "response": "Your saving health among all nations." },
+      { "leader": "Let not the needy, O Lord, be forgotten;", "response": "Nor the hope of the poor be taken away." },
+      { "leader": "Create in us clean hearts, O God;", "response": "And sustain us with your Holy Spirit." }
+    ]
+  },
+
+  "suffrages_b": {
+    "bcp_page": 98,
+    "label": "Suffrages B",
+    "rubric": "V. = Officiant; R. = People",
+    "pairs": [
+      { "leader": "Save your people, Lord, and bless your inheritance;", "response": "Govern and uphold them, now and always." },
+      { "leader": "Day by day we bless you;", "response": "We praise your name for ever." },
+      { "leader": "Lord, keep us from all sin today;", "response": "Have mercy upon us, Lord, have mercy." },
+      { "leader": "Lord, show us your love and mercy;", "response": "For we put our trust in you." },
+      { "leader": "In you, Lord, is our hope;", "response": "And we shall never hope in vain." }
+    ]
+  },
+
+  "collect_for_sundays_morning": {
+    "bcp_page": 98,
+    "label": "A Collect for Sundays",
+    "text": "O God, you make us glad with the weekly remembrance of the glorious resurrection of your Son our Lord: Give us this day such blessing through our worship of you, that the week to come may be spent in your favor; through Jesus Christ our Lord. Amen."
+  },
+
+  "collect_for_fridays": {
+    "bcp_page": 99,
+    "label": "A Collect for Fridays",
+    "text": "Almighty God, whose most dear Son went not up to joy but first he suffered pain, and entered not into glory before he was crucified: Mercifully grant that we, walking in the way of the cross, may find it none other than the way of life and peace; through Jesus Christ our Lord. Amen."
+  },
+
+  "collect_for_saturdays": {
+    "bcp_page": 99,
+    "label": "A Collect for Saturdays",
+    "text": "Almighty God, who after the creation of the world rested from all your works and sanctified a day of rest for all your creatures: Grant that we, putting away all earthly anxieties, may be duly prepared for the service of your sanctuary, and that our rest here upon earth may be a preparation for the eternal rest promised to your people in heaven; through Jesus Christ our Lord. Amen."
+  },
+
+  "collect_for_renewal_of_life": {
+    "bcp_page": 99,
+    "label": "A Collect for the Renewal of Life",
+    "text": "O God, the King eternal, whose light divides the day from the night and turns the shadow of death into the morning: Drive far from us all wrong desires, incline our hearts to keep your law, and guide our feet into the way of peace; that, having done your will with cheerfulness during the day, we may, when night comes, rejoice to give you thanks; through Jesus Christ our Lord. Amen."
+  },
+
+  "collect_for_peace": {
+    "bcp_page": 99,
+    "label": "A Collect for Peace",
+    "text": "O God, the author of peace and lover of concord, to know you is eternal life and to serve you is perfect freedom: Defend us, your humble servants, in all assaults of our enemies; that we, surely trusting in your defense, may not fear the power of any adversaries; through the might of Jesus Christ our Lord. Amen."
+  },
+
+  "collect_for_grace": {
+    "bcp_page": 99,
+    "label": "A Collect for Grace",
+    "text": "Lord God, almighty and everlasting Father, you have brought us in safety to this new day: Preserve us with your mighty power, that we may not fall into sin, nor be overcome by adversity; and in all we do, direct us to the fulfilling of your purpose; through Jesus Christ our Lord. Amen."
+  },
+
+  "collect_for_guidance": {
+    "bcp_page": 99,
+    "label": "A Collect for Guidance",
+    "text": "Heavenly Father, in you we live and move and have our being: We humbly pray you so to guide and govern us by your Holy Spirit, that in all the cares and occupations of our life we may not forget you, but may remember that we are ever walking in your sight; through Jesus Christ our Lord. Amen."
+  },
+
+  "general_thanksgiving": {
+    "bcp_page": 101,
+    "label": "The General Thanksgiving",
+    "rubric": "Officiant and People",
+    "text": [
+      "Almighty God, Father of all mercies,",
+      "we your unworthy servants give you humble thanks",
+      "for all your goodness and loving-kindness",
+      "to us and to all whom you have made.",
+      "We bless you for our creation, preservation,",
+      "and all the blessings of this life;",
+      "but above all for your immeasurable love",
+      "in the redemption of the world by our Lord Jesus Christ;",
+      "for the means of grace, and for the hope of glory.",
+      "And, we pray, give us such an awareness of your mercies,",
+      "that with truly thankful hearts we may show forth your praise,",
+      "not only with our lips, but in our lives,",
+      "by giving up our selves to your service,",
+      "and by walking before you",
+      "in holiness and righteousness all our days;",
+      "through Jesus Christ our Lord,",
+      "to whom, with you and the Holy Spirit,",
+      "be honor and glory throughout all ages. Amen."
+    ]
+  },
+
+  "prayer_of_chrysostom": {
+    "bcp_page": 102,
+    "label": "A Prayer of St. Chrysostom",
+    "text": "Almighty God, you have given us grace at this time with one accord to make our common supplication to you; and you have promised through your well-beloved Son that when two or three are gathered together in his Name you will be in the midst of them: Fulfill now, O Lord, our desires and petitions as may be best for us; granting us in this world knowledge of your truth, and in the age to come life everlasting. Amen."
+  },
+
+  "closing": {
+    "bcp_page": 102,
+    "leader": "Let us bless the Lord.",
+    "response": "Thanks be to God."
+  },
+
+  "grace": {
+    "bcp_page": 102,
+    "text": "The grace of our Lord Jesus Christ, and the love of God, and the fellowship of the Holy Spirit, be with us all evermore."
+  },
+
+  "phos_hilaron": {
+    "bcp_page": 118,
+    "name": "O Gracious Light",
+    "aka": "Phos hilaron",
+    "rubric": "The following hymn, or some other suitable hymn or psalm, may be sung or said at the lighting of the evening lamp.",
+    "lines": [
+      "O gracious light,",
+      "pure brightness of the everliving Father in heaven,",
+      "O Jesus Christ, holy and blessed!",
+      "",
+      "Now as we come to the setting of the sun,",
+      "and our eyes behold the vesper light,",
+      "we sing your praises, O God: Father, Son, and Holy Spirit.",
+      "",
+      "You are worthy at all times to be praised by happy voices,",
+      "O Son of God, O Giver of Life,",
+      "and to be glorified through all the worlds."
+    ]
+  },
+
+  "lords_be_with_you": {
+    "leader": "The Lord be with you.",
+    "response": "And also with you.",
+    "note": "Used to introduce the prayers at both Morning and Evening Prayer."
+  }
+}
