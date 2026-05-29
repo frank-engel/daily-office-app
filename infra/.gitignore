@@ -1,0 +1,15 @@
+# Terraform state — never commit
+*.tfstate
+*.tfstate.backup
+
+# Terraform working directory
+.terraform/
+.terraform.lock.hcl
+
+# Variable files may contain secrets — commit only .example files
+*.tfvars
+!*.tfvars.example
+
+# Plan files
+tfplan
+*.tfplan

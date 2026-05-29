@@ -1,0 +1,18 @@
+aws_region   = "us-east-1"
+environment  = "prototype"
+instance_type = "t3.micro"
+
+# Set to your domain to enable HTTPS, e.g. "office.example.com".
+# Leave empty to serve HTTP only.
+domain_name = ""
+
+# Set to false to take the app offline without destroying infrastructure.
+enable_public_access = true
+
+# Restrict ALB to specific IPs, e.g. your home IP for staging.
+# Leave empty to allow all internet traffic.
+allowed_ips = []
+# allowed_ips = ["203.0.113.42/32"]
+
+bible_db_s3_key = "web.sqlite"
+app_port        = 8000
