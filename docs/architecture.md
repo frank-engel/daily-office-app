@@ -17,23 +17,26 @@ in the MVP — everything runs locally and is accessed from an Android WebView o
 │  HTML routes  (Jinja2 + HTMX)                          │
 │  ├─ GET /                       ─► index.html           │
 │  ├─ GET /office/{date}          ─► office.html          │
+│  ├─ GET /full/{date}            ─► office_full.html     │
+│  ├─ GET /habits                 ─► habits.html          │
 │  └─ GET /partials/office/{date}/{tab}                   │
 │       ─► _office_tab.html  (HTMX partial swap)         │
 │                                                         │
 │  JSON API routes                                        │
-│  ├─ /api/office/{date}   ─► Calendar engine             │
-│  │                           Lectionary engine           │
-│  │                           Bible DB                    │
-│  ├─ /api/bible/{ref}     ─► Reference parser            │
-│  │                           Bible DB                    │
-│  ├─ /api/psalms/{n}      ─► Bible DB                    │
-│  └─ /api/habits/*        ─► Habit DB  (Phase 5)         │
+│  ├─ /api/office/{date}       ─► Calendar + Lectionary   │
+│  │                               + Bible DB + Collects  │
+│  ├─ /api/office/{date}/full  ─► Office builder          │
+│  │                               + Bible DB             │
+│  ├─ /api/bible/{ref}         ─► Reference parser        │
+│  │                               + Bible DB             │
+│  ├─ /api/psalms/{n}          ─► Bible DB                │
+│  └─ /api/habits/*            ─► Habit DB                │
 │                                                         │
 └──────────┬──────────────┬──────────────────────────────-┘
            │              │
     ┌──────▼──────┐  ┌────▼──────┐
     │  web.sqlite │  │habits.db  │
-    │  (KJVA)     │  │(Phase 5)  │
+    │  (KJVA)     │  │           │
     └─────────────┘  └───────────┘
 ```
 
@@ -60,6 +63,19 @@ keyed on the nearest Sunday date) and binary-searches it at call time.
 `DAILY_INDEX` is keyed `(cycle: int, week: str, day: str)`.  
 `HOLY_DAY_INDEX` is keyed on `"Dec 25"` / `"Nov 1"` etc.
 
+**Holy day precedence:** `resolver.py` checks `HOLY_DAY_INDEX` before `DAILY_INDEX` so
+fixed-calendar saints' days always override ordinary weekday readings. Principal Feasts
+(Easter Week, Pentecost, Holy Week, Trinity Sunday) are protected from displacement.
+
+### `app/collects/`
+
+| Module | Responsibility |
+|---|---|
+| `loader.py` | Load `seasons.json`, `holy_days.json`, `common_saints.json`, `various.json` |
+| `resolver.py` | `resolve_collect(date, ctx)` → Collect of the Day dict |
+
+Fixed saints' days are checked first; seasonal collects are matched via a title lookup table.
+
 ### `app/bible/`
 
 | Module | Responsibility |
@@ -70,6 +86,23 @@ keyed on the nearest Sunday date) and binary-searches it at call time.
 
 `reference_parser.py` handles all BCP reference formats including multi-section,
 cross-chapter, letter-suffixed verses, and parenthetical optionals.
+
+### `app/office/`
+
+| Module | Responsibility |
+|---|---|
+| `loader.py` | Load `canticles.json`, `opening_sentences.json`, `fixed_texts.json` at startup |
+| `canticle_resolver.py` | Date + liturgical context → canticle numbers per BCP table (p. 144–145) |
+| `builder.py` | Assemble the ordered block list for full Morning/Evening Prayer |
+
+`builder.py` returns a list of typed blocks (heading, rubric, versicle, canticle, psalm,
+lesson, creed, prayer, etc.) that are consumed by `office_full.html` and `/api/office/{date}/full`.
+
+### `app/habits/`
+
+| Module | Responsibility |
+|---|---|
+| `db.py` | `habits.sqlite` CRUD — `mark_complete`, `unmark`, `is_complete`, `get_completions` |
 
 ### `app/api/`
 
@@ -85,13 +118,14 @@ Jinja2 templates served by the HTML routes in `main.py`.
 |---|---|
 | `base.html` | Shared shell — nav bar, Tailwind + HTMX CDN, `<main>` wrapper |
 | `index.html` | Home page — "Open Today's Office" link |
-| `office.html` | Full office page — date header, prev/next nav, Morning/Evening tab bar |
-| `_office_tab.html` | Partial — psalms + lessons for one time-of-day; returned by the `/partials/` endpoint and also `{% include %}`d on initial page load |
-
-### `app/schemas.py`
-
-Pydantic response models shared across all routers. These drive both Swagger UI
-schema generation and runtime response validation.
+| `office.html` | Daily Office page — date header, collect, prev/next nav, Morning/Evening tab bar |
+| `_office_tab.html` | Partial — psalms + lessons for one time-of-day; returned by `/partials/` and `{% include %}`d on initial load |
+| `office_full.html` | Full Office page — complete rendered Morning/Evening Prayer service |
+| `_office_blocks.html` | Partial — renders the typed block list from `builder.py` |
+| `habits.html` | 30-day habit completion grid with HTMX toggles |
+| `_habit_toggle.html` | Partial — single habit pill/button; returned by the toggle endpoint |
+| `404.html` | Not-found error page (styled, extends `base.html`) |
+| `500.html` | Server error page (styled, extends `base.html`) |
 
 ## Data flow for `/api/office/{date}`
 
@@ -99,21 +133,26 @@ schema generation and runtime response validation.
 1. liturgical_context(date)
       → Easter math → season / week / day / cycle
 
-2. DAILY_INDEX[(cycle, week, day)]
+2. HOLY_DAY_INDEX.get("Nov 30")           ← check fixed feast first
+   or DAILY_INDEX[(cycle, week, day)]     ← fall back to ordinary day
       → raw lectionary entry (JSON)
 
-3. flatten_lessons(entry, "morning")
+3. resolve_collect(date, ctx)
+      → HOLY_DAY_INDEX (collects) or seasonal title lookup
+      → {"title", "preface", "traditional", "contemporary"}
+
+4. flatten_lessons(entry, "morning")
    flatten_lessons(entry, "evening")
       → {"first": "Isa 1:1–9", "second": "2 Pet 3:1–10", "gospel": "Matt 25:1–13"}
 
-4. parse_reference("Isa 1:1–9")
+5. parse_reference("Isa 1:1–9")
       → [VerseRange(book="Isa", start_chapter=1, start_verse=1, end_chapter=1, end_verse=9)]
 
-5. KJVA_verses WHERE book_id=23 AND chapter=1 AND verse BETWEEN 1 AND 9
+6. KJVA_verses WHERE book_id=23 AND chapter=1 AND verse BETWEEN 1 AND 9
       → [{book, chapter, verse, text}, ...]
 
-6a. JSON route  → OfficeResponse (Pydantic model) → JSON response
-6b. HTML route  → build_office_context() dict → Jinja2 office.html → HTML response
+7a. JSON route  → OfficeResponse (Pydantic model) → JSON response
+7b. HTML route  → build_office_context() dict → Jinja2 office.html → HTML response
                    HTMX tab click → /partials/office/{date}/{tab} → _office_tab.html fragment
 ```
 
@@ -147,6 +186,13 @@ is O(1) and far simpler than an additional SQLite table for 810 lectionary entri
 **Why no ORM?**  
 The Bible DB schema is read-only and the query patterns are simple range lookups.
 Raw `aiosqlite` is less dependency surface and is faster for this access pattern.
+
+**Holy day interrupt design**  
+The BCP rubric is: Principal Feasts > Sundays > Holy Days > ordinary days. The resolver
+implements this as: check `HOLY_DAY_INDEX` first for ordinary-day contexts; block the
+check for protected weeks (Easter Week, Pentecost, Holy Week, Trinity Sunday) so
+Principal Feasts can never be displaced by a coincident fixed feast (e.g. Visitation on
+May 31 when Trinity Sunday falls on that date).
 
 ## Future seams (post-MVP)
 

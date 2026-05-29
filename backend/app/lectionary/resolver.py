@@ -2,13 +2,22 @@
 Resolve a calendar date to a lectionary entry.
 
 Lookup order:
-  1. Holy day interrupt (TODO Phase 7): fixed-calendar feasts take precedence.
+  1. Fixed-calendar feasts (HOLY_DAY_INDEX) — saint's days always take precedence.
   2. Daily lectionary index keyed on (cycle, week, day).
 """
 from datetime import date
 
 from app.calendar.liturgical_year import liturgical_context, MONTH_ABBREVS
 from .loader import DAILY_INDEX, HOLY_DAY_INDEX
+
+# Weeks that are Principal Feasts or special seasons — fixed saints' days may not
+# interrupt these (BCP rubric: Principal Feasts outrank Holy Days).
+_PRINCIPAL_FEAST_WEEKS = frozenset({
+    "Easter Week",
+    "Holy Week",
+    "Pentecost",
+    "Ash Wednesday and Following",
+})
 
 
 def flatten_lessons(entry: dict, time_of_day: str) -> dict:
@@ -53,11 +62,14 @@ def resolve_office(d: date) -> dict | None:
     week = ctx["week"]
     day = ctx["day"]
 
-    # Look up the entry; fall back to holy day index for fixed-calendar feasts
-    entry = DAILY_INDEX.get((cycle, week, day))
-    if entry is None:
-        month_day = f"{MONTH_ABBREVS[d.month]} {d.day}"
-        entry = HOLY_DAY_INDEX.get(month_day)
+    # Fixed-calendar feasts take precedence over ordinary weekdays, but Principal
+    # Feasts (Easter Week, Pentecost, Trinity Sunday, etc.) outrank holy days.
+    month_day = f"{MONTH_ABBREVS[d.month]} {d.day}"
+    is_principal = week in _PRINCIPAL_FEAST_WEEKS or "Trinity" in ctx.get("title", "")
+    if is_principal:
+        entry = DAILY_INDEX.get((cycle, week, day))
+    else:
+        entry = HOLY_DAY_INDEX.get(month_day) or DAILY_INDEX.get((cycle, week, day))
     if entry is None:
         return None
 

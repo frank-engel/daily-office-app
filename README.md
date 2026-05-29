@@ -2,7 +2,7 @@
 
 A personal liturgical practice app serving the **BCP 1979 Daily Office** (Morning Prayer,
 Evening Prayer, Noonday, Compline) for any calendar date. Provides accurate lectionary and
-psalm assignments, full Bible text, and a minimal habit log.
+psalm assignments, full Bible text, collects, complete service texts, and a minimal habit log.
 
 ## Stack
 
@@ -59,8 +59,8 @@ cd backend
 pytest tests/ -v
 ```
 
-87 tests pass as of Phase 3: 23 calendar, 40 lectionary, 13 reference-parser, 9 Bible DB
-(Bible DB tests are skipped automatically when `web.sqlite` is absent, so CI works without it).
+103 tests across 5 test files (calendar, lectionary, reference parser, psalm tokens, Bible DB).
+Bible DB tests are skipped automatically when `web.sqlite` is absent, so CI works without it.
 
 ## Security
 
@@ -86,15 +86,21 @@ See also [`docs/api/`](docs/api/) for static Markdown reference.
 | URL | Description |
 |---|---|
 | `GET /` | Home page — link to today's office |
-| `GET /office/{YYYY-MM-DD}` | Daily Office page — Morning/Evening Prayer tabs with full text |
+| `GET /office/{YYYY-MM-DD}` | Daily Office page — Morning/Evening Prayer tabs with readings |
+| `GET /full/{YYYY-MM-DD}` | Full Office page — complete rendered Morning/Evening Prayer service |
+| `GET /habits` | Habit log — 30-day morning/evening completion grid |
 
 **JSON API:**
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/office/{YYYY-MM-DD}` | Complete Daily Office — lectionary, psalms, and verse text |
+| `GET /api/office/{YYYY-MM-DD}` | Complete Daily Office — lectionary, psalms, verse text, collect |
+| `GET /api/office/{YYYY-MM-DD}/full` | Full ordered service blocks (canticles, versicles, fixed texts) |
 | `GET /api/bible/{reference}` | Verse text for any BCP reference string |
 | `GET /api/psalms/{n[,n,...]}` | Full text of one or more psalms |
+| `GET /api/habits` | List morning/evening completions for a date range |
+| `POST /api/habits/{YYYY-MM-DD}/{office}` | Mark an office (morning/evening) complete |
+| `DELETE /api/habits/{YYYY-MM-DD}/{office}` | Unmark an office completion |
 | `GET /health` | Server health check |
 
 ## Build Phases
@@ -105,9 +111,11 @@ See also [`docs/api/`](docs/api/) for static Markdown reference.
 | 2 — Lectionary Engine | ✅ Done | Liturgical calendar, normalizer, loader, resolver, `/api/office/{date}` |
 | 3 — Bible Database | ✅ Done | KJVA SQLite, reference parser, `/api/bible`, `/api/psalms`, verse text in office API |
 | 4 — Frontend | ✅ Done | Jinja2/HTMX templates, readable office in browser, prev/next date nav |
-| 5 — Habits | Pending | Habit log, 30-day grid |
-| 6 — Android | Pending | WebView wrapper APK |
-| 7 — Polish | Ongoing | Holy day interrupt logic, error pages, edge cases |
+| 5 — Habits | ✅ Done | Habit log SQLite, CRUD API, 30-day completion grid |
+| 6 — Collects | ✅ Done | Collect of the Day resolver, traditional/contemporary toggle |
+| 7 — Android | ✅ Done | WebView wrapper APK, `adb reverse tcp:8000 tcp:8000` |
+| 8 — Full Office Text | ✅ Done | Canticles, versicles, opening sentences, suffrages, `/api/office/{date}/full` |
+| 9 — Polish | ✅ Done | Holy day interrupt logic, global error pages, edge case fixes |
 
 ## Data
 
@@ -115,12 +123,14 @@ See also [`docs/api/`](docs/api/) for static Markdown reference.
 |---|---|---|
 | BCP 1979 Lectionary JSON | `backend/data/readings/` | MIT (Reuben Lillie) |
 | BCP 1979 Collects | `backend/data/collects/` | Scraped from bcponline.org |
+| BCP 1979 Office Texts | `backend/data/office/` | Encoded from BCP 1979 (public domain) |
 | KJVA Bible | `backend/data/web.sqlite` | Public domain (not committed — acquire separately) |
 
-## Android (Phase 6)
+## Android
 
 ```bash
 adb reverse tcp:8000 tcp:8000
 ```
 
-Install the APK from `android/` and open the app on the device.
+Install the APK from `android/` and open the app on the device. The WebView shell points at
+`http://localhost:8000` and the port forwarding makes that resolve to your development machine.

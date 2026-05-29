@@ -313,6 +313,42 @@ def test_resolve_trinity_sunday_2026():
 
 
 # ---------------------------------------------------------------------------
+# Holy day interrupt — fixed-calendar feasts override ordinary weekday entries
+# ---------------------------------------------------------------------------
+
+def test_holy_day_interrupts_advent_weekday():
+    # Nov 30, 2026 = St. Andrew's Day; falls on Monday of Week of 1 Advent.
+    # The holy day must take precedence over the ordinary Advent weekday readings.
+    result = resolve_office(date(2026, 11, 30))
+    assert result is not None
+    assert result["title"] == "Saint Andrew the Apostle"
+    assert "34" in result["psalms"]["morning"]
+
+
+def test_holy_day_interrupts_christmas_season_weekday():
+    # Dec 26, 2025 = St. Stephen; falls in Christmas season (Friday).
+    # The holy day must take precedence over the ordinary Christmas weekday.
+    result = resolve_office(date(2025, 12, 26))
+    assert result is not None
+    assert result["title"] == "Saint Stephen, Deacon and Martyr"
+
+
+def test_holy_day_interrupts_epiphany_weekday():
+    # Jan 18, 2027 = Confession of Saint Peter; falls in Epiphany season.
+    result = resolve_office(date(2027, 1, 18))
+    assert result is not None
+    assert result["title"] == "The Confession of Saint Peter the Apostle"
+
+
+def test_ordinary_weekday_not_affected_by_holy_day_logic():
+    # A weekday with no holy day match should still resolve normally.
+    result = resolve_office(date(2026, 11, 29))  # First Sunday of Advent 2026
+    assert result is not None
+    assert result["week"] == "Week of 1 Advent"
+    assert result["cycle"] == 1
+
+
+# ---------------------------------------------------------------------------
 # flatten_lessons helper
 # ---------------------------------------------------------------------------
 

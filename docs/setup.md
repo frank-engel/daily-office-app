@@ -68,6 +68,8 @@ uvicorn main:app --reload
 |---|---|
 | `http://localhost:8000/` | Home page — "Open Today's Office" button |
 | `http://localhost:8000/office/YYYY-MM-DD` | Daily Office with Morning/Evening Prayer tabs |
+| `http://localhost:8000/full/YYYY-MM-DD` | Full rendered Morning/Evening Prayer service |
+| `http://localhost:8000/habits` | 30-day habit completion grid |
 | `http://localhost:8000/docs` | Swagger UI — interactive JSON API explorer |
 | `http://localhost:8000/redoc` | ReDoc — alternative API documentation |
 
@@ -75,11 +77,16 @@ uvicorn main:app --reload
 
 1. Open `http://localhost:8000/` — home page loads with today's date.
 2. Click **Open Today's Office** — office page loads with liturgical title, season, and year cycle.
-3. Morning Prayer tab is active by default; psalms and lessons render with verse text.
-4. Click **Evening Prayer** — content swaps via HTMX without a page reload.
-5. Click **‹ Prev** and **Next ›** — navigates to adjacent days correctly.
-6. Visit a known feast day, e.g. `http://localhost:8000/office/2026-04-05` (Easter Sunday 2026) — title shows *Easter Day*.
-7. Visit `http://localhost:8000/office/2024-12-01` (First Sunday of Advent 2024) — season shows *Advent*, Year One.
+3. The Collect of the Day appears with Contemporary/Traditional toggle.
+4. Morning Prayer tab is active by default; psalms and lessons render with verse text.
+5. Click **Evening Prayer** — content swaps via HTMX without a page reload.
+6. Click **‹ Prev** and **Next ›** — navigates to adjacent days correctly.
+7. Click **Full Service** — renders the complete ordered Morning Prayer service with canticles, versicles, and all fixed texts.
+8. Visit `http://localhost:8000/habits` — 30-day grid shows morning/evening toggles.
+9. Visit a known feast day, e.g. `http://localhost:8000/office/2026-11-30` (St. Andrew's Day 2026) — title shows *Saint Andrew the Apostle*, not the ordinary Advent weekday.
+10. Visit `http://localhost:8000/office/2026-04-05` (Easter Sunday 2026) — title shows *Easter Day*.
+11. Visit `http://localhost:8000/office/2024-12-01` (First Sunday of Advent 2024) — season shows *Advent*, Year One.
+12. Visit a non-existent URL, e.g. `http://localhost:8000/nothing` — styled 404 page appears.
 
 ## 5. Run tests
 
@@ -88,8 +95,8 @@ cd backend
 pytest tests/ -v
 ```
 
-Bible DB integration tests (`test_bible_db.py`) are automatically skipped when
-`web.sqlite` is absent, so CI passes without the database file.
+103 tests across 5 files. Bible DB integration tests (`test_bible_db.py`) are automatically
+skipped when `web.sqlite` is absent, so CI passes without the database file.
 
 ## Environment variables
 
@@ -107,13 +114,14 @@ required for the default layout.
 - `.env` is gitignored — only `.env.example` (with no real values) is tracked.
 - There are no API keys or external service credentials in the MVP.
 
-## Android (Phase 6)
+## Android
 
-Once the APK is installed, forward the server port over USB:
+Once the APK is installed from `android/`, forward the server port over USB:
 
 ```bash
 adb reverse tcp:8000 tcp:8000
 ```
 
 The Android WebView points at `http://localhost:8000` and the forwarding makes that
-resolve to your development machine.
+resolve to your development machine. The app does not require an internet connection
+once the server is running locally.

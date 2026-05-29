@@ -1,7 +1,7 @@
 # GET /api/office/{date}
 
 Return the complete BCP 1979 Daily Office lectionary for a given calendar date,
-including psalm assignments and full verse text for all lessons.
+including psalm assignments, full verse text for all lessons, and the Collect of the Day.
 
 ## Request
 
@@ -36,6 +36,12 @@ HTTP 200 with an `OfficeResponse` object.
   "season": "Easter",
   "week": "Week of 7 Easter",
   "cycle": 2,
+  "collect": {
+    "title": "Seventh Sunday of Easter",
+    "preface": "Preface of the Ascension",
+    "traditional": "O God, the King of glory...",
+    "contemporary": "O God, the King of glory..."
+  },
   "psalms": {
     "morning": [
       {
@@ -45,7 +51,7 @@ HTTP 200 with an `OfficeResponse` object.
         ]
       }
     ],
-    "evening": [ ... ]
+    "evening": [ "..." ]
   },
   "morning_lessons": {
     "first": {
@@ -54,12 +60,12 @@ HTTP 200 with an `OfficeResponse` object.
         { "book": "Ezek", "chapter": 39, "verse": 21, "text": "..." }
       ]
     },
-    "second": { "reference": "Rev 22:1–9", "verses": [ ... ] },
-    "gospel": { "reference": "Luke 9:18–27", "verses": [ ... ] }
+    "second": { "reference": "Rev 22:1–9", "verses": [ "..." ] },
+    "gospel": { "reference": "Luke 9:18–27", "verses": [ "..." ] }
   },
   "evening_lessons": {
-    "first": { "reference": "Ezek 47:1–12", "verses": [ ... ] },
-    "second": { "reference": "John 14:1–14", "verses": [ ... ] }
+    "first": { "reference": "Ezek 47:1–12", "verses": [ "..." ] },
+    "second": { "reference": "John 14:1–14", "verses": [ "..." ] }
   },
   "reflection": null
 }
@@ -74,6 +80,7 @@ HTTP 200 with an `OfficeResponse` object.
 | `season` | string | Liturgical season (e.g. `"Easter"`, `"Advent"`, `"Epiphany"`) |
 | `week` | string | Week name as used in the lectionary JSON |
 | `cycle` | integer | Year cycle: `1` (Year One) or `2` (Year Two) |
+| `collect` | object \| null | Collect of the Day — `title`, `preface`, `traditional`, `contemporary` |
 | `psalms.morning` | array | Morning psalm entries, each with `psalm` number and `verses` |
 | `psalms.evening` | array | Evening psalm entries |
 | `morning_lessons` | object | Morning lesson slots: `first`, `second`, `gospel` (gospel not always present) |
@@ -95,6 +102,12 @@ Each lesson entry:
 | 422 | Date is not in `YYYY-MM-DD` format |
 
 ## Notes
+
+### Holy day interrupt
+
+Fixed-calendar feasts (e.g. St. Andrew on Nov 30, St. Thomas on Dec 21) take precedence
+over the ordinary weekday lectionary when they coincide. Principal Feasts (Easter Week,
+Pentecost, Trinity Sunday, Holy Week) are never displaced by a fixed feast.
 
 ### Lectionary year cycle
 
