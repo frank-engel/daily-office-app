@@ -44,15 +44,25 @@
 {# ── Collect of the Day ──────────────────────────────────────────────────── #}
 {% if collect %}
 <div class="mb-6 p-4 bg-stone-50 border border-stone-200 rounded-lg">
+  {# Determine initial collect style: user preference, default contemporary #}
+  {% set initial_style = user.collect_style if user else 'contemporary' %}
   <div class="flex items-center justify-between mb-2">
     <p class="text-xs font-semibold tracking-widest text-stone-400 uppercase">Collect of the Day</p>
     <div class="flex gap-1 text-xs">
-      <button id="btn-contemp" onclick="setCollectStyle('contemporary')"
-        class="px-2 py-0.5 rounded border border-stone-300 bg-stone-700 text-white transition-colors">
+      <button id="btn-contemp"
+        onclick="setCollectStyle('contemporary')"
+        hx-post="/partials/preferences/collect-style"
+        hx-vals='{"value": "contemporary"}'
+        hx-swap="none"
+        class="px-2 py-0.5 rounded border border-stone-300 transition-colors {% if initial_style == 'contemporary' %}bg-stone-700 text-white{% else %}text-stone-500 hover:bg-stone-200{% endif %}">
         Contemporary
       </button>
-      <button id="btn-trad" onclick="setCollectStyle('traditional')"
-        class="px-2 py-0.5 rounded border border-stone-300 text-stone-500 hover:bg-stone-200 transition-colors">
+      <button id="btn-trad"
+        onclick="setCollectStyle('traditional')"
+        hx-post="/partials/preferences/collect-style"
+        hx-vals='{"value": "traditional"}'
+        hx-swap="none"
+        class="px-2 py-0.5 rounded border border-stone-300 transition-colors {% if initial_style == 'traditional' %}bg-stone-700 text-white{% else %}text-stone-500 hover:bg-stone-200{% endif %}">
         Traditional
       </button>
     </div>
@@ -60,8 +70,8 @@
   {% if collect.preface %}
   <p class="text-xs text-stone-400 italic mb-2">{{ collect.preface }}</p>
   {% endif %}
-  <p id="collect-contemporary" class="text-sm leading-relaxed text-stone-700">{{ collect.contemporary }}</p>
-  <p id="collect-traditional"  class="text-sm leading-relaxed text-stone-700 hidden">{{ collect.traditional }}</p>
+  <p id="collect-contemporary" class="text-sm leading-relaxed text-stone-700{% if initial_style != 'contemporary' %} hidden{% endif %}">{{ collect.contemporary }}</p>
+  <p id="collect-traditional"  class="text-sm leading-relaxed text-stone-700{% if initial_style != 'traditional' %} hidden{% endif %}">{{ collect.traditional }}</p>
 </div>
 
 <script>

@@ -17,7 +17,19 @@
       Daily Office
     </a>
     <div class="flex items-center gap-4">
-      <a href="/habits" class="text-stone-400 text-xs tracking-widest uppercase hover:text-stone-200 transition-colors">Habits</a>
+      {% if user %}
+        <a href="/habits" class="text-stone-400 text-xs tracking-widest uppercase hover:text-stone-200 transition-colors">Habits</a>
+        <a href="/profile" class="text-stone-400 text-xs tracking-widest uppercase hover:text-stone-200 transition-colors">
+          {{ user.display_name or user.email.split('@')[0] }}
+        </a>
+        <form method="post" action="/logout" class="inline">
+          <button type="submit" class="text-stone-500 text-xs tracking-widest uppercase hover:text-stone-300 transition-colors">
+            Sign Out
+          </button>
+        </form>
+      {% else %}
+        <a href="/login" class="text-stone-400 text-xs tracking-widest uppercase hover:text-stone-200 transition-colors">Sign In</a>
+      {% endif %}
       <span class="text-stone-600 text-xs tracking-widest uppercase">BCP 1979</span>
     </div>
   </nav>

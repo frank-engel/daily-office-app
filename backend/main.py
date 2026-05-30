@@ -1,11 +1,21 @@
 import datetime
+import os
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from dotenv import load_dotenv
+
+load_dotenv()  # Must run before any os.getenv() calls in imported modules
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
 
+from app.auth.db import User, init_db as init_users_db
+from app.auth.deps import get_current_user
+from app.auth.routes import router as auth_router
 from app.bible.db import startup_check
 from app.collects.loader import load_collects
 from app.lectionary.loader import load_lectionary
@@ -19,7 +29,7 @@ from app.office.loader import load_office_texts
 
 app = FastAPI(
     title="Anglican Daily Office API",
-    version="0.3.0",
+    version="0.4.0",
     description="""
 ## Anglican Daily Office — BCP 1979
 
@@ -37,7 +47,7 @@ calendar date.
 - **Calendar math** — Easter computed via the Gregorian Computus algorithm;
   all moveable feasts derived from it; Advent and Proper Sundays calculated per
   BCP rubrics
-- **Habit log** *(Phase 5)* — persistent morning/evening completion tracking
+- **Habit log** *(Phase 5)* — per-user morning/evening completion tracking
 
 ### Data sources
 
@@ -51,13 +61,30 @@ calendar date.
 
 - All date parameters use **ISO 8601** format: `YYYY-MM-DD`
 - Bible reference range separators are Unicode **en-dash** (U+2013), not ASCII hyphen
-- The `reflection` field is always `null` in the MVP; reserved for a future Claude AI integration
+- The `reflection` field is always `null` in MVP; reserved for Phase 11 Claude AI integration
 """,
     contact={"name": "Frank L Engel"},
     license_info={"name": "MIT"},
 )
 
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "dev-secret-change-in-production"),
+    https_only=os.getenv("HTTPS_ONLY", "false").lower() == "true",
+    same_site="lax",
+)
+
 TEMPLATES = Jinja2Templates(directory=Path(__file__).parent / "app" / "templates")
+
+
+def _user_today(user: User | None) -> datetime.date:
+    """Return today's date in the user's timezone (UTC if no user or unknown TZ)."""
+    if user is None:
+        return datetime.date.today()
+    try:
+        return datetime.datetime.now(ZoneInfo(user.timezone)).date()
+    except Exception:
+        return datetime.date.today()
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -85,8 +112,10 @@ async def startup() -> None:
     load_office_texts()
     await startup_check()
     await init_db()
+    await init_users_db()
 
 
+app.include_router(auth_router)
 app.include_router(office_router)
 app.include_router(office_full_router)
 app.include_router(bible_router)
@@ -96,17 +125,30 @@ app.include_router(habits_router)
 
 # ── HTML routes ──────────────────────────────────────────────────────────────
 
+async def _require_user_html(request: Request) -> User | None:
+    """Check auth for HTML routes; returns None and triggers redirect on failure."""
+    return await get_current_user(request)
+
+
 @app.get("/", include_in_schema=False, response_class=HTMLResponse)
 async def index(request: Request):
-    today = datetime.date.today().isoformat()
-    return TEMPLATES.TemplateResponse(request, "index.html", {"today": today})
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse("/login", status_code=303)
+    today = _user_today(user).isoformat()
+    return TEMPLATES.TemplateResponse(request, "index.html", {"today": today, "user": user})
 
 
 @app.get("/office/{office_date}", include_in_schema=False, response_class=HTMLResponse)
 async def office_html(request: Request, office_date: str):
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(f"/login?next=/office/{office_date}", status_code=303)
+
     try:
         d = datetime.date.fromisoformat(office_date)
     except ValueError:
+        today = _user_today(user).isoformat()
         return TEMPLATES.TemplateResponse(
             request,
             "office.html",
@@ -116,14 +158,15 @@ async def office_html(request: Request, office_date: str):
                 "formatted_date": office_date,
                 "prev_date": None,
                 "next_date": None,
-                "today": datetime.date.today().isoformat(),
+                "today": today,
+                "user": user,
             },
             status_code=422,
         )
 
     prev_date = (d - datetime.timedelta(days=1)).isoformat()
     next_date = (d + datetime.timedelta(days=1)).isoformat()
-    today = datetime.date.today().isoformat()
+    today = _user_today(user).isoformat()
     formatted_date = d.strftime("%A, %B %d, %Y")
 
     ctx = await build_office_context(office_date)
@@ -138,12 +181,13 @@ async def office_html(request: Request, office_date: str):
                 "prev_date": prev_date,
                 "next_date": next_date,
                 "today": today,
+                "user": user,
             },
             status_code=404,
         )
 
-    morning_complete = await is_complete(office_date, "morning")
-    evening_complete = await is_complete(office_date, "evening")
+    morning_complete = await is_complete(office_date, "morning", user_id=user.id)
+    evening_complete = await is_complete(office_date, "evening", user_id=user.id)
 
     return TEMPLATES.TemplateResponse(
         request,
@@ -156,6 +200,7 @@ async def office_html(request: Request, office_date: str):
             "today": today,
             "morning_complete": morning_complete,
             "evening_complete": evening_complete,
+            "user": user,
             **ctx,
         },
     )
@@ -163,6 +208,9 @@ async def office_html(request: Request, office_date: str):
 
 @app.get("/partials/office/{office_date}/{tab}", include_in_schema=False, response_class=HTMLResponse)
 async def office_tab_partial(request: Request, office_date: str, tab: str):
+    user = await get_current_user(request)
+    if user is None:
+        return HTMLResponse('<p class="text-stone-400">Session expired. Please <a href="/login" class="underline">sign in</a>.</p>', status_code=401)
     if tab not in ("morning", "evening"):
         return HTMLResponse(content="<p>Invalid tab.</p>", status_code=400)
     ctx = await build_office_context(office_date)
@@ -171,8 +219,8 @@ async def office_tab_partial(request: Request, office_date: str, tab: str):
             content=f'<p class="text-red-600 p-4">No office data for {office_date}.</p>',
             status_code=404,
         )
-    morning_complete = await is_complete(office_date, "morning")
-    evening_complete = await is_complete(office_date, "evening")
+    morning_complete = await is_complete(office_date, "morning", user_id=user.id)
+    evening_complete = await is_complete(office_date, "evening", user_id=user.id)
     return TEMPLATES.TemplateResponse(
         request,
         "_office_tab.html",
@@ -180,6 +228,7 @@ async def office_tab_partial(request: Request, office_date: str, tab: str):
             "tab": tab,
             "morning_complete": morning_complete,
             "evening_complete": evening_complete,
+            "user": user,
             **ctx,
         },
     )
@@ -187,14 +236,17 @@ async def office_tab_partial(request: Request, office_date: str, tab: str):
 
 @app.post("/partials/habits/{date}/{office}/toggle", include_in_schema=False, response_class=HTMLResponse)
 async def habit_toggle(request: Request, date: str, office: str, style: str = "pill"):
+    user = await get_current_user(request)
+    if user is None:
+        return HTMLResponse('<p class="text-stone-400">Session expired. Please <a href="/login" class="underline">sign in</a>.</p>', status_code=401)
     if office not in ("morning", "evening"):
         return HTMLResponse("<p>Invalid office.</p>", status_code=400)
-    currently_complete = await is_complete(date, office)
+    currently_complete = await is_complete(date, office, user_id=user.id)
     if currently_complete:
-        await unmark(date, office)
+        await unmark(date, office, user_id=user.id)
         new_complete = False
     else:
-        await mark_complete(date, office)
+        await mark_complete(date, office, user_id=user.id)
         new_complete = True
     return TEMPLATES.TemplateResponse(
         request,
@@ -207,14 +259,19 @@ async def habit_toggle(request: Request, date: str, office: str, style: str = "p
 
 @app.get("/full/{office_date}", include_in_schema=False, response_class=HTMLResponse)
 async def office_full_html(request: Request, office_date: str, suffrages: str = "A"):
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(f"/login?next=/full/{office_date}", status_code=303)
+
     try:
         d = datetime.date.fromisoformat(office_date)
     except ValueError:
+        today = _user_today(user).isoformat()
         return TEMPLATES.TemplateResponse(
             request, "office_full.html",
             {"error": f"Invalid date: {office_date!r}", "date": office_date,
              "formatted_date": office_date, "prev_date": None, "next_date": None,
-             "today": datetime.date.today().isoformat()},
+             "today": today, "user": user},
             status_code=422,
         )
 
@@ -223,14 +280,11 @@ async def office_full_html(request: Request, office_date: str, suffrages: str = 
 
     prev_date = (d - datetime.timedelta(days=1)).isoformat()
     next_date = (d + datetime.timedelta(days=1)).isoformat()
-    today = datetime.date.today().isoformat()
+    today = _user_today(user).isoformat()
     formatted_date = d.strftime("%A, %B %d, %Y")
 
     ctx = await build_office_context(office_date)
     suffrages_form = suffrages.upper() if suffrages.upper() in ("A", "B") else "A"
-
-    from app.office.builder import build_office
-    from app.api.office_full import _expand_blocks
 
     morning_raw = build_office(d, "morning", suffrages_form)
     evening_raw = build_office(d, "evening", suffrages_form)
@@ -254,6 +308,7 @@ async def office_full_html(request: Request, office_date: str, suffrages: str = 
             "suffrages_form": suffrages_form,
             "morning_blocks": morning_blocks,
             "evening_blocks": evening_blocks,
+            "user": user,
         },
     )
 
@@ -262,11 +317,15 @@ async def office_full_html(request: Request, office_date: str, suffrages: str = 
 
 @app.get("/habits", include_in_schema=False, response_class=HTMLResponse)
 async def habits_html(request: Request):
-    today = datetime.date.today()
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse("/login?next=/habits", status_code=303)
+
+    today = _user_today(user)
     from_date = (today - datetime.timedelta(days=29)).isoformat()
     to_date = today.isoformat()
 
-    completions = await get_completions(from_date, to_date)
+    completions = await get_completions(from_date, to_date, user_id=user.id)
     completed_set = {(c["date"], c["office"]) for c in completions}
 
     days = []
@@ -284,7 +343,7 @@ async def habits_html(request: Request):
     return TEMPLATES.TemplateResponse(
         request,
         "habits.html",
-        {"days": days, "today": today.isoformat()},
+        {"days": days, "today": today.isoformat(), "user": user},
     )
 
 

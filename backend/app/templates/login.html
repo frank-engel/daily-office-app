@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Sign In — Daily Office{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto mt-8">
+  <h1 class="text-2xl font-bold text-stone-800 mb-6">Sign In</h1>
+
+  {% if error %}
+  <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="post" action="/login" class="space-y-4">
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <div>
+      <label for="email" class="block text-xs uppercase tracking-widest text-stone-500 mb-1">Email</label>
+      <input
+        id="email" name="email" type="email" required autofocus autocomplete="email"
+        class="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400"
+      >
+    </div>
+
+    <div>
+      <label for="password" class="block text-xs uppercase tracking-widest text-stone-500 mb-1">Password</label>
+      <input
+        id="password" name="password" type="password" required autocomplete="current-password"
+        class="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400"
+      >
+    </div>
+
+    <button
+      type="submit"
+      class="w-full bg-stone-800 text-white text-sm py-2 rounded hover:bg-stone-700 transition-colors"
+    >
+      Sign In
+    </button>
+  </form>
+
+  <p class="mt-6 text-center text-xs text-stone-400">
+    <a href="/register" class="hover:text-stone-600 underline">Create an account</a>
+  </p>
+</div>
+{% endblock %}
