@@ -45,3 +45,15 @@ variable "app_port" {
   default     = 8000
   description = "Port uvicorn listens on inside the EC2 instance."
 }
+
+variable "secret_key" {
+  type        = string
+  sensitive   = true
+  description = "Secret key for session cookie signing. Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+}
+
+variable "allowed_emails" {
+  type        = string
+  default     = ""
+  description = "Comma-separated list of emails allowed to self-register (e.g. \"frank@example.com,tester@example.com\"). Empty = unrestricted when REGISTRATION_ENABLED=true."
+}

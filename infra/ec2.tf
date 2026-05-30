@@ -53,6 +53,8 @@ resource "aws_instance" "app" {
     bible_db_s3_key = var.bible_db_s3_key
     log_group_name  = "/daily-office-app/app"
     aws_region      = var.aws_region
+    secret_key      = var.secret_key
+    allowed_emails  = var.allowed_emails
   })
 
   user_data_replace_on_change = true

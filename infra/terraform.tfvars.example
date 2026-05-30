@@ -16,3 +16,13 @@ allowed_ips = []
 
 bible_db_s3_key = "web.sqlite"
 app_port        = 8000
+
+# Required: secret key for session cookie signing.
+# Generate with: python -c "import secrets; print(secrets.token_hex(32))"
+secret_key = "replace-with-a-random-secret"
+
+# Optional: comma-separated list of emails allowed to self-register.
+# Empty string = unrestricted (only matters when REGISTRATION_ENABLED=true on the instance).
+# To invite testers: set their emails here before deploy, then use the invite CLI on EC2.
+allowed_emails = ""
+# allowed_emails = "frank@example.com,tester@example.com"

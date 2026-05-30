@@ -67,6 +67,14 @@ db.sqlite3-journal
 # habits.sqlite: runtime habit log (user data)
 backend/data/*.sqlite
 
+# Terraform — local state and variable files contain secrets (secret_key)
+# Only terraform.tfvars.example is committed; copy it to terraform.tfvars locally
+infra/terraform.tfvars
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/.terraform.lock.hcl
+
 # Flask stuff:
 instance/
 .webassets-cache

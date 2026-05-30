@@ -15,10 +15,12 @@ from app.auth.db import (
     create_user,
     get_user_by_email,
     get_user_by_id,
+    set_user_password,
     update_preferences,
     verify_password,
 )
 from app.auth.deps import get_current_user
+from app.auth.tokens import create_invite_token, verify_invite_token
 
 router = APIRouter(include_in_schema=False)
 _TEMPLATES = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
@@ -100,7 +102,7 @@ async def login_post(
         )
 
     result = await get_user_by_email(email)
-    if result is None or not verify_password(password, result[1]):
+    if result is None:
         _record_failure(ip)
         return _TEMPLATES.TemplateResponse(
             request,
@@ -109,7 +111,22 @@ async def login_post(
             status_code=401,
         )
 
-    user, _ = result
+    user, password_hash = result
+
+    # Invited user — password not yet set; send them to the set-password flow.
+    if password_hash is None:
+        token = create_invite_token(user.id)
+        return RedirectResponse(f"/set-password?token={token}", status_code=303)
+
+    if not verify_password(password, password_hash):
+        _record_failure(ip)
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "login.html",
+            {"next": next, "error": "Invalid email or password."},
+            status_code=401,
+        )
+
     _clear_failures(ip)
     request.session["user_id"] = user.id
     return RedirectResponse(_safe_redirect(next), status_code=303)
@@ -146,6 +163,17 @@ async def register_post(
         return _TEMPLATES.TemplateResponse(
             request, "register.html", {"disabled": True, "error": "Registration is currently closed."}
         )
+
+    # ALLOWED_EMAILS allowlist: when set, only those addresses may self-register.
+    allowed_raw = os.getenv("ALLOWED_EMAILS", "").strip()
+    if allowed_raw:
+        allowed = {e.strip().lower() for e in allowed_raw.split(",") if e.strip()}
+        if email.lower().strip() not in allowed:
+            return _TEMPLATES.TemplateResponse(
+                request, "register.html",
+                {"disabled": False, "error": "Registration is not open for that email address."}
+            )
+
     if password != password_confirm:
         return _TEMPLATES.TemplateResponse(
             request, "register.html", {"disabled": False, "error": "Passwords do not match."}
@@ -210,6 +238,61 @@ async def profile_post(
         "profile.html",
         {"user": user, "timezones": COMMON_TIMEZONES, "saved": True, "error": None},
     )
+
+
+# ── Preferences partial (HTMX collect-style toggle) ───────────────────────────
+
+# ── Set password (first-login invite flow) ────────────────────────────────────
+
+@router.get("/set-password", response_class=HTMLResponse)
+async def set_password_get(request: Request, token: str = ""):
+    user_id = verify_invite_token(token)
+    if not user_id:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "set_password.html",
+            {"token": "", "error": "This link is invalid or has expired. Please ask for a new invite.", "expired": True},
+        )
+    user = await get_user_by_id(user_id)
+    if user is None:
+        return _TEMPLATES.TemplateResponse(
+            request, "set_password.html",
+            {"token": "", "error": "Account not found.", "expired": True},
+        )
+    return _TEMPLATES.TemplateResponse(
+        request, "set_password.html", {"token": token, "email": user.email, "error": None, "expired": False}
+    )
+
+
+@router.post("/set-password", response_class=HTMLResponse)
+async def set_password_post(
+    request: Request,
+    token: str = Form(""),
+    password: str = Form(...),
+    password_confirm: str = Form(...),
+):
+    user_id = verify_invite_token(token)
+    if not user_id:
+        return _TEMPLATES.TemplateResponse(
+            request, "set_password.html",
+            {"token": "", "error": "This link is invalid or has expired. Please ask for a new invite.", "expired": True},
+        )
+    if password != password_confirm:
+        user = await get_user_by_id(user_id)
+        return _TEMPLATES.TemplateResponse(
+            request, "set_password.html",
+            {"token": token, "email": user.email if user else "", "error": "Passwords do not match.", "expired": False},
+        )
+    if len(password) < 8:
+        user = await get_user_by_id(user_id)
+        return _TEMPLATES.TemplateResponse(
+            request, "set_password.html",
+            {"token": token, "email": user.email if user else "", "error": "Password must be at least 8 characters.", "expired": False},
+        )
+
+    await set_user_password(user_id, password)
+    request.session["user_id"] = user_id
+    return RedirectResponse("/", status_code=303)
 
 
 # ── Preferences partial (HTMX collect-style toggle) ───────────────────────────

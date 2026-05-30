@@ -33,8 +33,22 @@ if ! aws s3 cp "s3://daily-office-app-assets/${bible_db_s3_key}" \
   echo "WARNING: S3 download failed — app will start without Bible text." >&2
 fi
 
-# ── 6. Ensure data directory exists (habits.sqlite is created by SQLAlchemy) ──
+# ── 6. Ensure data directory exists ──────────────────────────────────────────
 mkdir -p /opt/daily-office-app/backend/data
+
+# ── 6.5. Write application .env ───────────────────────────────────────────────
+# Terraform substitutes ${secret_key} and ${allowed_emails} before this script
+# runs on EC2, so the heredoc content is already a literal string at runtime.
+# HTTPS_ONLY=true because ALB terminates TLS; cookies must be HTTPS-only.
+cat > /opt/daily-office-app/backend/.env << 'ENVEOF'
+BIBLE_DB_PATH=data/web.sqlite
+HABITS_DB_PATH=data/habits.sqlite
+USERS_DB_PATH=data/users.sqlite
+SECRET_KEY=${secret_key}
+REGISTRATION_ENABLED=false
+ALLOWED_EMAILS=${allowed_emails}
+HTTPS_ONLY=true
+ENVEOF
 
 # ── 7. Ownership ──────────────────────────────────────────────────────────────
 chown -R appuser:appuser /opt/daily-office-app
