@@ -40,6 +40,9 @@ mkdir -p /opt/daily-office-app/backend/data
 chown -R appuser:appuser /opt/daily-office-app
 
 # ── 8. Systemd service ────────────────────────────────────────────────────────
+touch /var/log/daily-office.log
+chown appuser:appuser /var/log/daily-office.log
+
 cat > /etc/systemd/system/daily-office.service << 'SVCEOF'
 [Unit]
 Description=Anglican Daily Office App
@@ -52,8 +55,8 @@ WorkingDirectory=/opt/daily-office-app/backend
 ExecStart=/opt/daily-office-app/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
-StandardOutput=journal
-StandardError=journal
+StandardOutput=append:/var/log/daily-office.log
+StandardError=append:/var/log/daily-office.log
 Environment=PYTHONUNBUFFERED=1
 
 [Install]
@@ -114,15 +117,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWAE
             "log_group_name": "${log_group_name}",
             "log_stream_name": "{instance_id}/user-data",
             "timezone": "UTC"
-          }
-        ]
-      },
-      "journald": {
-        "collect_list": [
+          },
           {
+            "file_path": "/var/log/daily-office.log",
             "log_group_name": "${log_group_name}",
             "log_stream_name": "{instance_id}/daily-office",
-            "units": ["daily-office.service"]
+            "timezone": "UTC"
           }
         ]
       }

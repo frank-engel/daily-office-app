@@ -43,10 +43,14 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "main" {
-  name     = "daily-office-app-${var.environment}"
-  port     = var.app_port
-  protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id
+  name_prefix = "doff-"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.default.id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   health_check {
     path                = "/health"
@@ -59,14 +63,14 @@ resource "aws_lb_target_group" "main" {
   }
 
   tags = {
-    Name = "daily-office-app-${var.environment}"
+    Name = "daily-office-app-tg-${var.environment}"
   }
 }
 
 resource "aws_lb_target_group_attachment" "app" {
   target_group_arn = aws_lb_target_group.main.arn
   target_id        = aws_instance.app.id
-  port             = var.app_port
+  port             = 80
 }
 
 # Port 80: redirect to 443 when domain_name is set, otherwise forward to target group.
