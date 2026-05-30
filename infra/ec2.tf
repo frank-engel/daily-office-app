@@ -55,6 +55,7 @@ resource "aws_instance" "app" {
     aws_region      = var.aws_region
     secret_key      = var.secret_key
     allowed_emails  = var.allowed_emails
+    https_only      = var.domain_name != "" ? "true" : "false"
   })
 
   user_data_replace_on_change = true

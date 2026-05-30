@@ -39,7 +39,7 @@ mkdir -p /opt/daily-office-app/backend/data
 # ── 6.5. Write application .env ───────────────────────────────────────────────
 # Terraform substitutes ${secret_key} and ${allowed_emails} before this script
 # runs on EC2, so the heredoc content is already a literal string at runtime.
-# HTTPS_ONLY=true because ALB terminates TLS; cookies must be HTTPS-only.
+# HTTPS_ONLY is true only when domain_name is set (HTTPS via ALB); false for plain HTTP.
 cat > /opt/daily-office-app/backend/.env << 'ENVEOF'
 BIBLE_DB_PATH=data/web.sqlite
 HABITS_DB_PATH=data/habits.sqlite
@@ -47,7 +47,7 @@ USERS_DB_PATH=data/users.sqlite
 SECRET_KEY=${secret_key}
 REGISTRATION_ENABLED=false
 ALLOWED_EMAILS=${allowed_emails}
-HTTPS_ONLY=true
+HTTPS_ONLY=${https_only}
 ENVEOF
 
 # ── 7. Ownership ──────────────────────────────────────────────────────────────
