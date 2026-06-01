@@ -96,7 +96,13 @@ def liturgical_context(d: date) -> dict | None:
 
     # ── EPIPHANY AND FOLLOWING (Jan 6 – eve of Baptism Sunday) ────────────
     if jan6 <= d <= epiphany_eve:
-        day = "Saturday" if d == epiphany_eve else f"Jan {d.day}"
+        if d == epiphany_eve:
+            # Eve entry is keyed as "Saturday"; supply the date-based key as
+            # morning_day so the resolver can fall back to the Jan-X readings.
+            return {"week": "The Epiphany and Following", "day": "Saturday",
+                    "cycle": cycle, "season": "Epiphany",
+                    "morning_day": f"Jan {d.day}"}
+        day = f"Jan {d.day}"
         return {"week": "The Epiphany and Following", "day": day,
                 "cycle": cycle, "season": "Epiphany"}
 
@@ -137,8 +143,12 @@ def liturgical_context(d: date) -> dict | None:
     # ── WEEKS OF EASTER 2-7 ────────────────────────────────────────────────
     if easter2 <= d < pent:
         n = (d - easter2).days // 7 + 2
-        return {"week": f"Week of {n} Easter", "day": _day_name(d),
-                "cycle": cycle, "season": "Easter"}
+        week = f"Week of {n} Easter"
+        day = _day_name(d)
+        ctx: dict = {"week": week, "day": day, "cycle": cycle, "season": "Easter"}
+        if n == 6 and day == "Thursday":
+            ctx["title"] = "Ascension Day"
+        return ctx
 
     # ── PENTECOST SUNDAY ────────────────────────────────────────────────────
     if d == pent:
@@ -148,8 +158,18 @@ def liturgical_context(d: date) -> dict | None:
 
     # ── EVE OF TRINITY SUNDAY ──────────────────────────────────────────────
     if d == trinity_eve:
+        # Eve readings are evening-only; compute the underlying Proper week so
+        # the resolver can fall back to those lessons for Morning Prayer.
+        proper_list = _proper_sundays(easter_year)
+        morning_week = ""
+        for i, (n, sun) in enumerate(proper_list):
+            next_sun = proper_list[i + 1][1] if i + 1 < len(proper_list) else date(9999, 1, 1)
+            if sun <= d < next_sun:
+                morning_week = f"Proper {n}"
+                break
         return {"week": "", "day": "Saturday", "cycle": cycle,
-                "season": "Pentecost", "title": "Eve of Trinity Sunday"}
+                "season": "Pentecost", "title": "Eve of Trinity Sunday",
+                "morning_week": morning_week}
 
     # ── TRINITY SUNDAY ─────────────────────────────────────────────────────
     if d == trinity:

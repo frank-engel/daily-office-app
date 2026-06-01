@@ -64,8 +64,15 @@ def resolve_office(d: date) -> dict | None:
 
     # Fixed-calendar feasts take precedence over ordinary weekdays, but Principal
     # Feasts (Easter Week, Pentecost, Trinity Sunday, etc.) outrank holy days.
+    # The *Eve* of Trinity Sunday is not itself a Principal Feast — only the feast
+    # day proper is — so the holy-day index still applies on the Eve date.
     month_day = f"{MONTH_ABBREVS[d.month]} {d.day}"
-    is_principal = week in _PRINCIPAL_FEAST_WEEKS or "Trinity" in ctx.get("title", "")
+    title = ctx.get("title", "")
+    is_principal = week in _PRINCIPAL_FEAST_WEEKS or (
+        title in ("Ascension Day",) or (
+            "Trinity Sunday" in title and not title.startswith("Eve of")
+        )
+    )
     if is_principal:
         entry = DAILY_INDEX.get((cycle, week, day))
     else:
@@ -89,6 +96,23 @@ def resolve_office(d: date) -> dict | None:
 
     morning_lessons = flatten_lessons(entry, "morning")
     evening_lessons = flatten_lessons(entry, "evening")
+
+    # Eve entries (Eve of Trinity, Eve of the Visitation, etc.) only carry evening
+    # data.  When morning is empty, fall back to the regular Proper-week readings
+    # for that weekday so Morning Prayer is never blank.
+    # Eve entries only carry evening data; fill any missing morning fields from
+    # the underlying weekday entry.  Three special-key cases handled by ctx hints:
+    #   - Trinity Eve: week="" → ctx["morning_week"] = "Proper N"
+    #   - Epiphany Eve: day="Saturday" → ctx["morning_day"] = "Jan X"
+    #   - Fixed-date Eves (Holy Day index): ctx["week"]/["day"] are already correct
+    morning_week = ctx.get("morning_week") or week
+    morning_day = ctx.get("morning_day") or day
+    if morning_week and not morning_psalms:
+        fallback = DAILY_INDEX.get((cycle, morning_week, morning_day))
+        if fallback:
+            morning_psalms = fallback.get("psalms", {}).get("morning", [])
+            if not morning_lessons:
+                morning_lessons = flatten_lessons(fallback, "morning")
 
     return {
         "date": d.isoformat(),
