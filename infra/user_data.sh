@@ -78,10 +78,12 @@ WantedBy=multi-user.target
 SVCEOF
 
 # ── 9. Nginx reverse proxy ────────────────────────────────────────────────────
-# ALB handles TLS termination; nginx proxies plain HTTP on port 80.
+# CloudFront handles TLS termination; nginx proxies plain HTTP on port 80.
 # limit_req_zone provides a second rate-limiting layer behind WAF.
 cat > /etc/nginx/conf.d/daily-office.conf << 'NGINXEOF'
-limit_req_zone $binary_remote_addr zone=app:10m rate=10r/s;
+# Rate-limit on the real client IP forwarded by CloudFront (not the PoP IP).
+# WAF handles per-IP rate limiting upstream; this nginx limit is defense-in-depth only.
+limit_req_zone $http_x_forwarded_for zone=app:10m rate=30r/s;
 
 server {
     listen 80 default_server;
@@ -96,7 +98,7 @@ server {
         proxy_set_header      Host              $host;
         proxy_set_header      X-Real-IP         $remote_addr;
         proxy_set_header      X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header      X-Forwarded-Proto $scheme;
+        proxy_set_header      X-Forwarded-Proto $http_x_forwarded_proto;
         proxy_read_timeout    60s;
         proxy_connect_timeout 10s;
     }

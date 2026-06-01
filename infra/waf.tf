@@ -1,12 +1,14 @@
-resource "aws_wafv2_web_acl" "main" {
-  name  = "daily-office-app-${var.environment}"
-  scope = "REGIONAL"
+# CloudFront-scoped WAF — attached to the CloudFront distribution.
+# scope = "CLOUDFRONT" cannot be updated in place (destroy+recreate); this is a
+# separate resource from the REGIONAL WAF so both can coexist during DNS cutover.
+resource "aws_wafv2_web_acl" "cloudfront" {
+  name  = "daily-office-app-cf-${var.environment}"
+  scope = "CLOUDFRONT" # must be in us-east-1 — satisfied by default region
 
   default_action {
     allow {}
   }
 
-  # Rule 1: Rate limit — 1000 requests per 5 minutes per IP.
   rule {
     name     = "RateLimitPerIP"
     priority = 1
@@ -29,8 +31,6 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 2: AWS Managed Common Rule Set — COUNT only during testing to avoid
-  # blocking legitimate traffic. Change override_action to none {} to enforce.
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 2
@@ -53,7 +53,6 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 3: AWS Managed Known Bad Inputs — BLOCK.
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
     priority = 3
@@ -78,12 +77,12 @@ resource "aws_wafv2_web_acl" "main" {
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "daily-office-app-waf-${var.environment}"
+    metric_name                = "daily-office-app-cf-waf-${var.environment}"
     sampled_requests_enabled   = true
   }
 
   tags = {
-    Name = "daily-office-app-waf-${var.environment}"
+    Name = "daily-office-app-cf-waf-${var.environment}"
   }
 }
 

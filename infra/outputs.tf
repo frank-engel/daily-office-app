@@ -1,16 +1,11 @@
-output "alb_dns_name" {
-  description = "DNS name of the ALB — point your domain's CNAME here."
-  value       = aws_lb.main.dns_name
-}
-
 output "instance_id" {
   description = "EC2 instance ID — use with ssm_connect_command to open a shell."
   value       = aws_instance.app.id
 }
 
 output "waf_acl_arn" {
-  description = "WAF Web ACL ARN."
-  value       = aws_wafv2_web_acl.main.arn
+  description = "WAF Web ACL ARN (CloudFront-scoped)."
+  value       = aws_wafv2_web_acl.cloudfront.arn
 }
 
 output "acm_validation_cnames" {
@@ -25,6 +20,21 @@ output "acm_validation_cnames" {
     },
     {}
   )
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution domain — point your domain's CNAME here (replaces alb_dns_name after Phase 3)."
+  value       = aws_cloudfront_distribution.main.domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID — needed for cache invalidations."
+  value       = aws_cloudfront_distribution.main.id
+}
+
+output "elastic_ip" {
+  description = "Elastic IP address attached to the EC2 instance."
+  value       = aws_eip.app.public_ip
 }
 
 output "ssm_connect_command" {

@@ -22,18 +22,6 @@ variable "domain_name" {
   description = "Optional domain name (e.g. office.example.com). When set, an ACM certificate is created and the ALB serves HTTPS on port 443. When empty, ALB serves HTTP only on port 80."
 }
 
-variable "enable_public_access" {
-  type        = bool
-  default     = true
-  description = "When false, the ALB security group has no inbound rules, effectively taking the app offline without destroying infrastructure."
-}
-
-variable "allowed_ips" {
-  type        = list(string)
-  default     = []
-  description = "When non-empty and enable_public_access is true, restrict ALB inbound to these CIDRs only (e.g. [\"1.2.3.4/32\"]). Empty = open to internet."
-}
-
 variable "bible_db_s3_key" {
   type        = string
   default     = "web.sqlite"
@@ -50,6 +38,12 @@ variable "secret_key" {
   type        = string
   sensitive   = true
   description = "Secret key for session cookie signing. Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+}
+
+variable "cloudfront_enabled" {
+  type        = bool
+  default     = true
+  description = "When false, CloudFront returns 503 for all requests (equivalent to taking app offline)."
 }
 
 variable "allowed_emails" {
